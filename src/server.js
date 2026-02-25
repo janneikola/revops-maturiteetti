@@ -51,7 +51,7 @@ app.use('/api/admin', require('./routes/admin'));
 app.get('/results/:id', async (req, res) => {
   try {
     await db.ready;
-    const assessment = db.get(req.params.id);
+    const assessment = await db.get(req.params.id);
     const resultsPath = path.join(__dirname, '..', 'public', 'results.html');
 
     if (!assessment || !fs.existsSync(resultsPath)) {

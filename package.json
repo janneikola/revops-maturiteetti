@@ -13,7 +13,7 @@
     "express": "^4.21.0",
     "express-rate-limit": "^7.5.0",
     "jsonwebtoken": "^9.0.2",
-    "sql.js": "^1.14.0",
+    "postgres": "^3.4.8",
     "uuid": "^9.0.1"
   },
   "devDependencies": {

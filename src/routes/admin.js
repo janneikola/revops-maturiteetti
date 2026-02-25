@@ -18,10 +18,10 @@ router.post('/login', (req, res) => {
 router.use(adminAuth);
 
 // GET /api/admin/stats
-router.get('/stats', (req, res) => {
+router.get('/stats', async (req, res) => {
   try {
-    const stats = db.getStats();
-    const events = db.getEventStats();
+    const stats = await db.getStats();
+    const events = await db.getEventStats();
     res.json({ ...stats, events });
   } catch (err) {
     console.error('Admin stats error:', err);
@@ -30,11 +30,11 @@ router.get('/stats', (req, res) => {
 });
 
 // GET /api/admin/assessments
-router.get('/assessments', (req, res) => {
+router.get('/assessments', async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = Math.min(parseInt(req.query.limit) || 20, 100);
-    const data = db.getAssessments(page, limit);
+    const data = await db.getAssessments(page, limit);
     res.json(data);
   } catch (err) {
     console.error('Admin assessments error:', err);
@@ -43,9 +43,9 @@ router.get('/assessments', (req, res) => {
 });
 
 // GET /api/admin/export
-router.get('/export', (req, res) => {
+router.get('/export', async (req, res) => {
   try {
-    const rows = db.getAllForExport();
+    const rows = await db.getAllForExport();
     const headers = [
       'id', 'created_at', 'lead_name', 'lead_email', 'lead_company', 'lead_role',
       'score_strategy', 'score_process', 'score_data', 'score_tech',

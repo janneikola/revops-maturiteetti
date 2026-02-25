@@ -37,7 +37,7 @@ function calculateScores(answers) {
 }
 
 // POST /api/assessments - Submit assessment
-router.post('/assessments', (req, res) => {
+router.post('/assessments', async (req, res) => {
   try {
     const { answers, lead } = req.body;
     if (!answers || typeof answers !== 'object') {
@@ -48,7 +48,7 @@ router.post('/assessments', (req, res) => {
     const level = getLevel(scores.overall);
     const id = uuidv4();
 
-    db.insert({
+    await db.insert({
       id,
       answers,
       scores,
@@ -59,26 +59,28 @@ router.post('/assessments', (req, res) => {
       lead_role: lead?.role,
     });
 
-    db.trackEvent('assessment_completed', id);
+    db.trackEvent('assessment_completed', id).catch(e => console.error('Event tracking failed:', e));
 
-    const benchmarkData = benchmark.getBenchmarks(scores);
+    const benchmarkData = await benchmark.getBenchmarks(scores);
 
     // Trigger AI generation in background
     if (process.env.CLAUDE_API_KEY) {
-      const assessment = db.get(id);
-      Promise.all([
-        claude.generateAnalysis(assessment).catch(e => {
-          console.error('AI analysis failed:', e.message);
-          return null;
-        }),
-        claude.generateActionPlan(assessment).catch(e => {
-          console.error('AI action plan failed:', e.message);
-          return null;
-        }),
-      ]).then(([analysis, actionPlan]) => {
-        if (analysis || actionPlan) {
-          db.updateAi(id, analysis, actionPlan);
-        }
+      db.get(id).then(assessment => {
+        if (!assessment) return;
+        Promise.all([
+          claude.generateAnalysis(assessment).catch(e => {
+            console.error('AI analysis failed:', e.message);
+            return null;
+          }),
+          claude.generateActionPlan(assessment).catch(e => {
+            console.error('AI action plan failed:', e.message);
+            return null;
+          }),
+        ]).then(([analysis, actionPlan]) => {
+          if (analysis || actionPlan) {
+            db.updateAi(id, analysis, actionPlan);
+          }
+        });
       });
     }
 
@@ -96,9 +98,9 @@ router.post('/assessments', (req, res) => {
 });
 
 // GET /api/assessments/:id - Get assessment results
-router.get('/assessments/:id', (req, res) => {
+router.get('/assessments/:id', async (req, res) => {
   try {
-    const row = db.get(req.params.id);
+    const row = await db.get(req.params.id);
     if (!row) return res.status(404).json({ error: 'Not found' });
 
     const scores = {
@@ -111,7 +113,7 @@ router.get('/assessments/:id', (req, res) => {
       overall: row.score_overall,
     };
 
-    const benchmarkData = benchmark.getBenchmarks(scores);
+    const benchmarkData = await benchmark.getBenchmarks(scores);
 
     res.json({
       id: row.id,
@@ -133,9 +135,9 @@ router.get('/assessments/:id', (req, res) => {
 });
 
 // GET /api/assessments/:id/ai - Get AI content
-router.get('/assessments/:id/ai', (req, res) => {
+router.get('/assessments/:id/ai', async (req, res) => {
   try {
-    const row = db.get(req.params.id);
+    const row = await db.get(req.params.id);
     if (!row) return res.status(404).json({ error: 'Not found' });
 
     if (row.ai_generated_at) {
@@ -154,9 +156,9 @@ router.get('/assessments/:id/ai', (req, res) => {
 });
 
 // POST /api/assessments/:id/generate-ai - Trigger AI generation
-router.post('/assessments/:id/generate-ai', (req, res) => {
+router.post('/assessments/:id/generate-ai', async (req, res) => {
   try {
-    const row = db.get(req.params.id);
+    const row = await db.get(req.params.id);
     if (!row) return res.status(404).json({ error: 'Not found' });
     if (row.ai_generated_at) return res.json({ status: 'ready' });
     if (!process.env.CLAUDE_API_KEY) return res.json({ status: 'unavailable' });
@@ -178,9 +180,9 @@ router.post('/assessments/:id/generate-ai', (req, res) => {
 });
 
 // GET /api/benchmarks - Public benchmark data
-router.get('/benchmarks', (req, res) => {
+router.get('/benchmarks', async (req, res) => {
   try {
-    const data = benchmark.getAggregates();
+    const data = await benchmark.getAggregates();
     res.json(data || { totalAssessments: 0 });
   } catch (err) {
     console.error('Benchmarks error:', err);
@@ -189,11 +191,11 @@ router.get('/benchmarks', (req, res) => {
 });
 
 // POST /api/events - Track analytics events
-router.post('/events', (req, res) => {
+router.post('/events', async (req, res) => {
   try {
     const { type, assessmentId, metadata } = req.body;
     if (!type) return res.status(400).json({ error: 'Missing event type' });
-    db.trackEvent(type, assessmentId, metadata);
+    await db.trackEvent(type, assessmentId, metadata);
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: 'Internal server error' });

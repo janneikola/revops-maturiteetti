@@ -16,8 +16,8 @@ function mean(values) {
 }
 
 module.exports = {
-  getBenchmarks(scores) {
-    const allRows = db.getAllScores();
+  async getBenchmarks(scores) {
+    const allRows = await db.getAllScores();
     const total = allRows.length;
 
     if (total < MIN_RESPONSES) {
@@ -44,8 +44,8 @@ module.exports = {
     return { available: true, totalResponses: total, benchmarks };
   },
 
-  getAggregates() {
-    const allRows = db.getAllScores();
+  async getAggregates() {
+    const allRows = await db.getAllScores();
     const total = allRows.length;
     if (total === 0) return null;
 
