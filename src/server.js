@@ -5,15 +5,20 @@ const path = require('path');
 const fs = require('fs');
 const rateLimit = require('express-rate-limit');
 
-const apiRoutes = require('./routes/api');
-const adminRoutes = require('./routes/admin');
+let apiRoutes, adminRoutes;
+try {
+  apiRoutes = require('./routes/api');
+  adminRoutes = require('./routes/admin');
+} catch (err) {
+  console.error('FATAL: Failed to load routes:', err);
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Health check (before any middleware)
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', port: PORT });
+  res.json({ status: 'ok', port: PORT, pid: process.pid, uptime: process.uptime() });
 });
 
 // Middleware
@@ -28,8 +33,8 @@ app.use('/api/', rateLimit({
 }));
 
 // API routes
-app.use('/api', apiRoutes);
-app.use('/api/admin', adminRoutes);
+if (apiRoutes) app.use('/api', apiRoutes);
+if (adminRoutes) app.use('/api/admin', adminRoutes);
 
 // Shareable results page with OG meta tags
 app.get('/results/:id', (req, res) => {
