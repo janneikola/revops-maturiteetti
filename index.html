@@ -53,15 +53,8 @@ body::before{
 .container{max-width:860px;margin:0 auto;padding:0 24px}
 
 /* Logo */
-.logo{display:inline-flex;align-items:center;gap:12px;text-decoration:none}
-.logo-mark{
-  width:40px;height:40px;border-radius:10px;
-  background:linear-gradient(135deg,var(--blue-600),var(--blue-800));
-  display:flex;align-items:center;justify-content:center;
-  font-family:var(--font-display);font-weight:800;font-size:16px;color:#fff;
-  letter-spacing:-0.5px;box-shadow:0 0 20px rgba(37,99,235,.3);
-}
-.logo-text{font-family:var(--font-display);font-weight:600;font-size:15px;color:var(--gray-300);letter-spacing:.3px}
+.logo{display:inline-flex;align-items:center;text-decoration:none}
+.logo-img{height:28px;width:auto;display:block}
 
 /* Topbar */
 .topbar{padding:20px 0;position:relative;z-index:10}
@@ -442,8 +435,7 @@ body::before{
 <div class="topbar">
   <div class="container">
     <a class="logo" href="#">
-      <div class="logo-mark">AB</div>
-      <span class="logo-text">Aava &amp; Bang AI</span>
+      <img class="logo-img" src="logo.png" alt="Aava &amp; Bang">
     </a>
     <div class="topbar-badge">RevOps Kartoitus</div>
   </div>
