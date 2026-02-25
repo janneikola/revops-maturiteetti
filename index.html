@@ -6,6 +6,7 @@
 <title>RevOps Maturiteettikartoitus | Aava & Bang AI</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -403,6 +404,15 @@ body::before{
 .results-actions{
   display:flex;justify-content:center;gap:16px;margin-top:24px;
 }
+.btn-pdf{
+  font-family:var(--font-display);font-weight:600;font-size:14px;
+  padding:12px 28px;border:1px solid rgba(37,99,235,.3);border-radius:100px;
+  cursor:pointer;color:var(--blue-400);background:rgba(37,99,235,.08);
+  transition:all .3s;display:inline-flex;align-items:center;gap:8px;
+}
+.btn-pdf:hover{background:rgba(37,99,235,.15);border-color:rgba(37,99,235,.5);color:var(--blue-300)}
+.btn-pdf.generating{opacity:.6;cursor:wait}
+.btn-pdf svg{width:16px;height:16px;fill:currentColor}
 
 /* Responsive */
 @media(max-width:768px){
@@ -1193,18 +1203,32 @@ function showResults() {
   ctaH3.textContent = 'Haluatko kehitt\u00e4\u00e4 RevOps-toimintaasi?';
   cta.appendChild(ctaH3);
   var ctaP = document.createElement('p');
-  ctaP.textContent = 'Varaa maksuton konsultaatio Aava & Bang AI:n asiantuntijan kanssa. Autamme sinua siirtym\u00e4\u00e4n seuraavalle maturiteettitasolle.';
+  ctaP.textContent = 'Varaa maksuton konsultaatio Hanna-Riikka Ilkan kanssa. Autamme sinua siirtym\u00e4\u00e4n seuraavalle maturiteettitasolle.';
   cta.appendChild(ctaP);
   var ctaBtn = document.createElement('a');
-  ctaBtn.href = 'mailto:hello@aavabang.ai';
+  ctaBtn.href = 'mailto:hanna-riikka.ilkka@bang.fi';
   ctaBtn.className = 'btn-primary';
-  ctaBtn.textContent = 'Varaa konsultaatio';
+  ctaBtn.textContent = 'Ota yhteytt\u00e4 Hanna-Riikkaan';
   cta.appendChild(ctaBtn);
   container.appendChild(cta);
 
   // Actions
   var actions = document.createElement('div');
   actions.className = 'results-actions';
+
+  var pdfBtn = document.createElement('button');
+  pdfBtn.className = 'btn-pdf';
+  pdfBtn.id = 'btn-download-pdf';
+  var pdfIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  pdfIcon.setAttribute('viewBox', '0 0 24 24');
+  var pdfPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  pdfPath.setAttribute('d', 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM6 20V4h5v7h7v9H6zm2-6h8v1.5H8V14zm0 3h8v1.5H8V17zm0-6h3v1.5H8V11z');
+  pdfIcon.appendChild(pdfPath);
+  pdfBtn.appendChild(pdfIcon);
+  pdfBtn.appendChild(document.createTextNode('Lataa PDF-raportti'));
+  pdfBtn.addEventListener('click', function() { generatePDF(dimensions, overall, level); });
+  actions.appendChild(pdfBtn);
+
   var retakeBtn = document.createElement('button');
   retakeBtn.className = 'btn-secondary';
   retakeBtn.textContent = 'Tee kartoitus uudelleen';
@@ -1357,6 +1381,510 @@ function renderRadarSVG(scores) {
     scoreText.setAttribute('dy', dy);
     scoreText.setAttribute('font-family', 'Outfit, system-ui, sans-serif');
     scoreText.setAttribute('font-size', '11');
+    scoreText.setAttribute('font-weight', '700');
+    scoreText.setAttribute('fill', getLevel(val).color);
+    scoreText.textContent = val;
+    svg.appendChild(scoreText);
+  }
+
+  return svg;
+}
+
+// ===== PDF GENERATION =====
+function generatePDF(dimensions, overall, level) {
+  var btn = document.getElementById('btn-download-pdf');
+  btn.classList.add('generating');
+  btn.textContent = 'Luodaan PDF...';
+
+  // Short delay to let UI update
+  setTimeout(function() {
+    try {
+      _buildPDF(dimensions, overall, level);
+    } catch(e) {
+      console.error('PDF generation failed:', e);
+      alert('PDF:n luonti ep\u00e4onnistui. Yrit\u00e4 uudelleen.');
+    }
+    btn.classList.remove('generating');
+    btn.textContent = '';
+    var pdfIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    pdfIcon.setAttribute('viewBox', '0 0 24 24');
+    pdfIcon.style.width = '16px';
+    pdfIcon.style.height = '16px';
+    pdfIcon.style.fill = 'currentColor';
+    var pdfPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    pdfPath.setAttribute('d', 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM6 20V4h5v7h7v9H6zm2-6h8v1.5H8V14zm0 3h8v1.5H8V17zm0-6h3v1.5H8V11z');
+    pdfIcon.appendChild(pdfPath);
+    btn.appendChild(pdfIcon);
+    btn.appendChild(document.createTextNode('Lataa PDF-raportti'));
+  }, 50);
+}
+
+function _buildPDF(dimScores, overall, level) {
+  var jsPDF = window.jspdf.jsPDF;
+  var doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  var W = 210, H = 297;
+  var margin = 20;
+  var contentW = W - margin * 2;
+  var y = 0;
+
+  // Color helpers
+  function hexToRGB(hex) {
+    var r = parseInt(hex.slice(1,3),16);
+    var g = parseInt(hex.slice(3,5),16);
+    var b = parseInt(hex.slice(5,7),16);
+    return [r,g,b];
+  }
+
+  // ===== PAGE 1: Cover + Overall =====
+  // Dark background
+  doc.setFillColor(17, 24, 39);
+  doc.rect(0, 0, W, H, 'F');
+
+  // Blue accent bar at top
+  doc.setFillColor(37, 99, 235);
+  doc.rect(0, 0, W, 4, 'F');
+
+  // Logo area
+  y = 28;
+  doc.setFillColor(37, 99, 235);
+  doc.roundedRect(margin, y - 6, 14, 14, 3, 3, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(255, 255, 255);
+  doc.text('AB', margin + 7, y + 3, { align: 'center' });
+
+  doc.setFontSize(11);
+  doc.setTextColor(200, 200, 210);
+  doc.text('Aava & Bang AI', margin + 18, y + 2);
+
+  // Title
+  y = 65;
+  doc.setFontSize(32);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(255, 255, 255);
+  doc.text('RevOps', margin, y);
+  y += 14;
+  doc.text('Maturiteettikartoitus', margin, y);
+
+  // Subtitle
+  y += 12;
+  doc.setFontSize(13);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(156, 163, 175);
+  doc.text('Tulosraportti', margin, y);
+
+  // Date
+  var now = new Date();
+  var dateStr = now.getDate() + '.' + (now.getMonth()+1) + '.' + now.getFullYear();
+  doc.text(dateStr, W - margin, y, { align: 'right' });
+
+  // Lead info if available
+  y += 8;
+  try {
+    var leadData = JSON.parse(localStorage.getItem('revops-lead') || '{}');
+    if (leadData.name) {
+      doc.setFontSize(11);
+      doc.setTextColor(180, 180, 190);
+      y += 6;
+      doc.text(leadData.name, margin, y);
+      if (leadData.company) { y += 6; doc.text(leadData.company, margin, y); }
+      if (leadData.email) { y += 6; doc.text(leadData.email, margin, y); }
+    }
+  } catch(e) {}
+
+  // Divider line
+  y += 16;
+  doc.setDrawColor(55, 65, 81);
+  doc.setLineWidth(0.3);
+  doc.line(margin, y, W - margin, y);
+
+  // Overall score section
+  y += 20;
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(107, 114, 128);
+  doc.text('KOKONAISTULOS', margin, y);
+
+  // Score circle
+  y += 14;
+  var circleX = margin + 20;
+  var circleY = y + 12;
+  var circleR = 18;
+
+  // Background ring
+  doc.setDrawColor(55, 65, 81);
+  doc.setLineWidth(2.5);
+  doc.circle(circleX, circleY, circleR);
+
+  // Colored arc (approximate with colored circle outline)
+  var lvlRGB = hexToRGB(level.color);
+  doc.setDrawColor(lvlRGB[0], lvlRGB[1], lvlRGB[2]);
+  doc.setLineWidth(2.5);
+  // Draw partial arc by drawing over
+  var arcAngle = (overall / 5) * 360;
+  var steps = Math.ceil(arcAngle / 5);
+  for (var s = 0; s <= steps; s++) {
+    var a = (-90 + (s / steps) * arcAngle) * Math.PI / 180;
+    var ax = circleX + circleR * Math.cos(a);
+    var ay = circleY + circleR * Math.sin(a);
+    if (s > 0) {
+      var prevA = (-90 + ((s-1) / steps) * arcAngle) * Math.PI / 180;
+      var px = circleX + circleR * Math.cos(prevA);
+      var py = circleY + circleR * Math.sin(prevA);
+      doc.line(px, py, ax, ay);
+    }
+  }
+
+  // Score number
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(22);
+  doc.setTextColor(255, 255, 255);
+  doc.text(String(overall), circleX, circleY + 1, { align: 'center' });
+  doc.setFontSize(8);
+  doc.setTextColor(107, 114, 128);
+  doc.text('/ 5.0', circleX, circleY + 7, { align: 'center' });
+
+  // Level name and description
+  var textX = circleX + circleR + 14;
+  doc.setFontSize(18);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(lvlRGB[0], lvlRGB[1], lvlRGB[2]);
+  doc.text(level.name, textX, circleY - 4);
+
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(156, 163, 175);
+  var descLines = doc.splitTextToSize(level.desc, contentW - (textX - margin) - 5);
+  doc.text(descLines, textX, circleY + 4);
+
+  // ===== Radar chart as image =====
+  y = circleY + circleR + 30;
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(107, 114, 128);
+  doc.text('MATURITEETTIPROFIILI', margin, y);
+
+  // Render SVG radar to canvas, then to PDF
+  y += 6;
+  var radarSvg = renderRadarSVGForPDF(dimScores);
+  var svgStr = new XMLSerializer().serializeToString(radarSvg);
+  var canvas = document.createElement('canvas');
+  canvas.width = 840;
+  canvas.height = 840;
+  var ctx = canvas.getContext('2d');
+
+  var img = new Image();
+  var svgBlob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+  var url = URL.createObjectURL(svgBlob);
+
+  img.onload = function() {
+    // Dark background for radar
+    ctx.fillStyle = '#111827';
+    ctx.fillRect(0, 0, 840, 840);
+    ctx.drawImage(img, 0, 0, 840, 840);
+    URL.revokeObjectURL(url);
+
+    var imgData = canvas.toDataURL('image/png');
+    var radarSize = 80;
+    var radarX = W / 2 - radarSize / 2;
+    doc.addImage(imgData, 'PNG', radarX, y, radarSize, radarSize);
+
+    // ===== PAGE 2: Dimension details =====
+    doc.addPage();
+    doc.setFillColor(17, 24, 39);
+    doc.rect(0, 0, W, H, 'F');
+    doc.setFillColor(37, 99, 235);
+    doc.rect(0, 0, W, 4, 'F');
+
+    var py = 24;
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(107, 114, 128);
+    doc.text('OSA-ALUEKOHTAISET TULOKSET', margin, py);
+    py += 12;
+
+    DIMENSIONS.forEach(function(dim, idx) {
+      var score = dimScores[dim.id];
+      var lvl = getLevel(score);
+      var recKey = Math.min(5, Math.max(1, Math.round(score)));
+      var rec = dim.recommendations[recKey];
+      var rgb = hexToRGB(lvl.color);
+
+      // Check if we need a new page
+      if (py > H - 60) {
+        doc.addPage();
+        doc.setFillColor(17, 24, 39);
+        doc.rect(0, 0, W, H, 'F');
+        doc.setFillColor(37, 99, 235);
+        doc.rect(0, 0, W, 4, 'F');
+        py = 24;
+      }
+
+      // Card background
+      doc.setFillColor(25, 32, 48);
+      doc.roundedRect(margin, py - 4, contentW, 0, 2, 2, 'F'); // placeholder, height set below
+
+      // Accent bar
+      doc.setFillColor(rgb[0], rgb[1], rgb[2]);
+      doc.rect(margin, py - 4, contentW, 1.5, 'F');
+
+      // Dimension name
+      var cardY = py + 4;
+      doc.setFontSize(13);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 255, 255);
+      doc.text(dim.name, margin + 4, cardY);
+
+      // Score
+      doc.setFontSize(18);
+      doc.setTextColor(rgb[0], rgb[1], rgb[2]);
+      doc.text(String(score), W - margin - 4, cardY, { align: 'right' });
+
+      // Level label
+      cardY += 6;
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(rgb[0], rgb[1], rgb[2]);
+      doc.text(lvl.name.toUpperCase(), margin + 4, cardY);
+
+      // Progress bar
+      cardY += 4;
+      var barW = contentW - 8;
+      var barH = 2.5;
+      doc.setFillColor(55, 65, 81);
+      doc.roundedRect(margin + 4, cardY, barW, barH, 1, 1, 'F');
+      doc.setFillColor(rgb[0], rgb[1], rgb[2]);
+      doc.roundedRect(margin + 4, cardY, barW * (score / 5), barH, 1, 1, 'F');
+
+      // Recommendation
+      cardY += 8;
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(200, 200, 210);
+      doc.text('Seuraava askel:', margin + 4, cardY);
+      cardY += 5;
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(156, 163, 175);
+      var recLines = doc.splitTextToSize(rec, contentW - 12);
+      doc.text(recLines, margin + 4, cardY);
+      cardY += recLines.length * 4.5;
+
+      // Draw card background properly
+      var cardHeight = cardY - (py - 4) + 4;
+      // Redraw background
+      doc.setFillColor(25, 32, 48);
+      doc.roundedRect(margin, py - 4, contentW, cardHeight, 2, 2, 'F');
+      // Redraw accent
+      doc.setFillColor(rgb[0], rgb[1], rgb[2]);
+      doc.rect(margin, py - 4, contentW, 1.5, 'F');
+      // Redraw text on top
+      var cy2 = py + 4;
+      doc.setFontSize(13);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 255, 255);
+      doc.text(dim.name, margin + 4, cy2);
+      doc.setFontSize(18);
+      doc.setTextColor(rgb[0], rgb[1], rgb[2]);
+      doc.text(String(score), W - margin - 4, cy2, { align: 'right' });
+      cy2 += 6;
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(rgb[0], rgb[1], rgb[2]);
+      doc.text(lvl.name.toUpperCase(), margin + 4, cy2);
+      cy2 += 4;
+      doc.setFillColor(55, 65, 81);
+      doc.roundedRect(margin + 4, cy2, barW, barH, 1, 1, 'F');
+      doc.setFillColor(rgb[0], rgb[1], rgb[2]);
+      doc.roundedRect(margin + 4, cy2, barW * (score / 5), barH, 1, 1, 'F');
+      cy2 += 8;
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(200, 200, 210);
+      doc.text('Seuraava askel:', margin + 4, cy2);
+      cy2 += 5;
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(156, 163, 175);
+      doc.text(recLines, margin + 4, cy2);
+
+      py += cardHeight + 8;
+    });
+
+    // ===== PAGE 3: CTA =====
+    // Check if enough space, else add page
+    if (py > H - 60) {
+      doc.addPage();
+      doc.setFillColor(17, 24, 39);
+      doc.rect(0, 0, W, H, 'F');
+      doc.setFillColor(37, 99, 235);
+      doc.rect(0, 0, W, 4, 'F');
+      py = 24;
+    }
+
+    py += 8;
+    // CTA box
+    doc.setFillColor(20, 30, 55);
+    doc.roundedRect(margin, py, contentW, 50, 3, 3, 'F');
+    doc.setDrawColor(37, 99, 235);
+    doc.setLineWidth(0.4);
+    doc.roundedRect(margin, py, contentW, 50, 3, 3, 'S');
+
+    doc.setFontSize(15);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255, 255, 255);
+    doc.text('Haluatko kehitt\u00e4\u00e4 RevOps-toimintaasi?', W / 2, py + 16, { align: 'center' });
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(156, 163, 175);
+    var ctaLines = doc.splitTextToSize('Varaa maksuton konsultaatio Hanna-Riikka Ilkan kanssa. Autamme sinua siirtym\u00e4\u00e4n seuraavalle maturiteettitasolle.', contentW - 30);
+    doc.text(ctaLines, W / 2, py + 26, { align: 'center' });
+
+    doc.setFontSize(10);
+    doc.setTextColor(59, 130, 246);
+    doc.text('hanna-riikka.ilkka@bang.fi', W / 2, py + 42, { align: 'center' });
+
+    // Footer on all pages
+    var pageCount = doc.internal.getNumberOfPages();
+    for (var p = 1; p <= pageCount; p++) {
+      doc.setPage(p);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(75, 85, 99);
+      doc.text('Aava & Bang AI \u2022 RevOps Maturiteettikartoitus \u2022 ' + dateStr, W / 2, H - 10, { align: 'center' });
+      doc.text(p + ' / ' + pageCount, W - margin, H - 10, { align: 'right' });
+    }
+
+    // Download
+    var filename = 'RevOps-Maturiteettikartoitus';
+    try {
+      var ld = JSON.parse(localStorage.getItem('revops-lead') || '{}');
+      if (ld.company) filename += '_' + ld.company.replace(/[^a-zA-Z0-9\u00e4\u00f6\u00c4\u00d6]/g, '_');
+    } catch(e) {}
+    filename += '_' + dateStr.replace(/\./g, '-') + '.pdf';
+    doc.save(filename);
+  };
+
+  img.src = url;
+}
+
+// Radar SVG for PDF (with opaque background for PNG export)
+function renderRadarSVGForPDF(scores) {
+  var cx = 210, cy = 210, maxR = 160;
+  var n = DIMENSIONS.length;
+  var angleStep = (2 * Math.PI) / n;
+  var startAngle = -Math.PI / 2;
+
+  function polarToXY(angle, radius) {
+    return { x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle) };
+  }
+
+  var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  svg.setAttribute('viewBox', '0 0 420 420');
+  svg.setAttribute('width', '840');
+  svg.setAttribute('height', '840');
+
+  // Background
+  var bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  bg.setAttribute('width', '420');
+  bg.setAttribute('height', '420');
+  bg.setAttribute('fill', '#111827');
+  svg.appendChild(bg);
+
+  // Grid levels
+  for (var lvl = 1; lvl <= 5; lvl++) {
+    var gridR = (lvl / 5) * maxR;
+    var pts = '';
+    for (var i = 0; i < n; i++) {
+      var angle = startAngle + i * angleStep;
+      var p = polarToXY(angle, gridR);
+      pts += p.x + ',' + p.y + ' ';
+    }
+    var gridPoly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    gridPoly.setAttribute('points', pts.trim());
+    gridPoly.setAttribute('fill', 'none');
+    gridPoly.setAttribute('stroke', lvl === 5 ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.07)');
+    gridPoly.setAttribute('stroke-width', '1');
+    svg.appendChild(gridPoly);
+  }
+
+  // Axis lines
+  for (var i = 0; i < n; i++) {
+    var angle = startAngle + i * angleStep;
+    var ep = polarToXY(angle, maxR);
+    var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', String(cx));
+    line.setAttribute('y1', String(cy));
+    line.setAttribute('x2', String(ep.x));
+    line.setAttribute('y2', String(ep.y));
+    line.setAttribute('stroke', 'rgba(255,255,255,0.1)');
+    line.setAttribute('stroke-width', '1');
+    svg.appendChild(line);
+  }
+
+  // Data polygon
+  var dataPts = '';
+  for (var i = 0; i < n; i++) {
+    var angle = startAngle + i * angleStep;
+    var val = scores[DIMENSIONS[i].id] || 1;
+    var dataR = (val / 5) * maxR;
+    var dp = polarToXY(angle, dataR);
+    dataPts += dp.x + ',' + dp.y + ' ';
+  }
+  var dataPoly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+  dataPoly.setAttribute('points', dataPts.trim());
+  dataPoly.setAttribute('fill', 'rgba(37,99,235,0.2)');
+  dataPoly.setAttribute('stroke', 'rgba(59,130,246,0.9)');
+  dataPoly.setAttribute('stroke-width', '2.5');
+  dataPoly.setAttribute('stroke-linejoin', 'round');
+  svg.appendChild(dataPoly);
+
+  // Data points
+  for (var i = 0; i < n; i++) {
+    var angle = startAngle + i * angleStep;
+    var val = scores[DIMENSIONS[i].id] || 1;
+    var dataR = (val / 5) * maxR;
+    var dp = polarToXY(angle, dataR);
+    var lvl = getLevel(val);
+    var circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', String(dp.x));
+    circle.setAttribute('cy', String(dp.y));
+    circle.setAttribute('r', '6');
+    circle.setAttribute('fill', lvl.color);
+    circle.setAttribute('stroke', '#ffffff');
+    circle.setAttribute('stroke-width', '2');
+    svg.appendChild(circle);
+  }
+
+  // Labels
+  for (var i = 0; i < n; i++) {
+    var angle = startAngle + i * angleStep;
+    var lp = polarToXY(angle, maxR + 30);
+    var val = scores[DIMENSIONS[i].id] || 1;
+    var anchor = Math.abs(lp.x - cx) < 5 ? 'middle' : lp.x > cx ? 'start' : 'end';
+    var dy = '0.35em';
+    if (Math.abs(lp.y - cy) < 20) dy = lp.y < cy ? '-0.5em' : '1em';
+
+    var text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', String(lp.x));
+    text.setAttribute('y', String(lp.y));
+    text.setAttribute('text-anchor', anchor);
+    text.setAttribute('dy', dy);
+    text.setAttribute('font-family', 'Helvetica, Arial, sans-serif');
+    text.setAttribute('font-size', '14');
+    text.setAttribute('font-weight', '600');
+    text.setAttribute('fill', 'rgba(255,255,255,0.7)');
+    text.textContent = DIMENSIONS[i].name;
+    svg.appendChild(text);
+
+    var sp = polarToXY(angle, maxR + 48);
+    var scoreText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    scoreText.setAttribute('x', String(sp.x));
+    scoreText.setAttribute('y', String(sp.y));
+    scoreText.setAttribute('text-anchor', anchor);
+    scoreText.setAttribute('dy', dy);
+    scoreText.setAttribute('font-family', 'Helvetica, Arial, sans-serif');
+    scoreText.setAttribute('font-size', '13');
     scoreText.setAttribute('font-weight', '700');
     scoreText.setAttribute('fill', getLevel(val).color);
     scoreText.textContent = val;
