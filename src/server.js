@@ -11,6 +11,11 @@ const adminRoutes = require('./routes/admin');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Health check (before any middleware)
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', port: PORT });
+});
+
 // Middleware
 app.use(express.json());
 
