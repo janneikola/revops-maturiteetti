@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RevOps Maturiteettikartoitus | Aava & Bang AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue-500:#3B82F6;--blue-600:#2563EB;--blue-700:#1D4ED8;--blue-800:#1E40AF;--blue-900:#1E3A8A;
+  --gray-50:#F9FAFB;--gray-100:#F3F4F6;--gray-200:#E5E7EB;--gray-300:#D1D5DB;--gray-400:#9CA3AF;
+  --gray-500:#6B7280;--gray-600:#4B5563;--gray-700:#374151;--gray-800:#1F2937;--gray-900:#111827;--gray-950:#030712;
+  --red:#EF4444;--orange:#F97316;--yellow:#EAB308;--green:#22C55E;
+  --radius:12px;--radius-lg:20px;
+  --font-display:'Outfit',system-ui,sans-serif;
+  --font-body:'DM Sans',system-ui,sans-serif;
+}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+body{
+  font-family:var(--font-body);color:var(--gray-100);
+  background:var(--gray-950);min-height:100vh;overflow-x:hidden;
+  background-image:
+    radial-gradient(ellipse 80% 60% at 50% -20%, rgba(37,99,235,0.12) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 40% at 80% 90%, rgba(37,99,235,0.06) 0%, transparent 60%);
+}
+
+/* Noise overlay */
+body::before{
+  content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;
+  opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:128px 128px;
+}
+
+/* Grid pattern */
+.grid-bg{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+  background-size:60px 60px;
+  mask-image:radial-gradient(ellipse 70% 50% at 50% 30%, black 20%, transparent 80%);
+}
+
+/* Screens */
+.screen{display:none;position:relative;z-index:1}
+.screen.active{display:block;animation:screenIn .6s cubic-bezier(.16,1,.3,1)}
+@keyframes screenIn{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+
+.container{max-width:860px;margin:0 auto;padding:0 24px}
+
+/* Logo */
+.logo{display:inline-flex;align-items:center;gap:12px;text-decoration:none}
+.logo-mark{
+  width:40px;height:40px;border-radius:10px;
+  background:linear-gradient(135deg,var(--blue-600),var(--blue-800));
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-weight:800;font-size:16px;color:#fff;
+  letter-spacing:-0.5px;box-shadow:0 0 20px rgba(37,99,235,.3);
+}
+.logo-text{font-family:var(--font-display);font-weight:600;font-size:15px;color:var(--gray-300);letter-spacing:.3px}
+
+/* Topbar */
+.topbar{padding:20px 0;position:relative;z-index:10}
+.topbar .container{display:flex;align-items:center;justify-content:space-between}
+.topbar-badge{
+  font-family:var(--font-display);font-size:11px;font-weight:600;
+  color:var(--blue-500);letter-spacing:1.5px;text-transform:uppercase;
+  background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.2);
+  padding:5px 12px;border-radius:100px;
+}
+
+/* LANDING SCREEN */
+.landing-hero{
+  min-height:calc(100vh - 80px);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;
+  padding:40px 24px 80px;position:relative;
+}
+.landing-hero::before{
+  content:'';position:absolute;width:500px;height:500px;
+  border-radius:50%;top:50%;left:50%;transform:translate(-50%,-55%);
+  background:radial-gradient(circle,rgba(37,99,235,.08) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hero-overline{
+  font-family:var(--font-display);font-size:13px;font-weight:600;
+  letter-spacing:3px;text-transform:uppercase;color:var(--blue-500);
+  margin-bottom:24px;position:relative;
+}
+.hero-overline::before,.hero-overline::after{
+  content:'';display:inline-block;width:30px;height:1px;
+  background:var(--blue-600);vertical-align:middle;margin:0 16px;opacity:.5;
+}
+.hero-title{
+  font-family:var(--font-display);font-weight:800;
+  font-size:clamp(36px,6vw,64px);line-height:1.05;letter-spacing:-2px;
+  color:#fff;max-width:700px;margin-bottom:24px;
+}
+.hero-title span{
+  background:linear-gradient(135deg,var(--blue-500),#818CF8);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.hero-desc{
+  font-size:18px;line-height:1.7;color:var(--gray-400);
+  max-width:520px;margin-bottom:48px;
+}
+.btn-primary{
+  font-family:var(--font-display);font-weight:600;font-size:16px;
+  padding:16px 40px;border:none;border-radius:100px;cursor:pointer;
+  color:#fff;background:linear-gradient(135deg,var(--blue-600),var(--blue-700));
+  box-shadow:0 0 40px rgba(37,99,235,.3),0 4px 12px rgba(0,0,0,.3);
+  transition:all .3s cubic-bezier(.16,1,.3,1);position:relative;overflow:hidden;
+  letter-spacing:.3px;text-decoration:none;display:inline-block;
+}
+.btn-primary:hover{
+  transform:translateY(-2px);
+  box-shadow:0 0 60px rgba(37,99,235,.4),0 8px 24px rgba(0,0,0,.3);
+}
+.btn-primary::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,transparent 40%,rgba(255,255,255,.1) 50%,transparent 60%);
+  transform:translateX(-100%);transition:transform .6s;
+}
+.btn-primary:hover::after{transform:translateX(100%)}
+
+.hero-stats{
+  display:flex;gap:48px;margin-top:64px;padding-top:48px;
+  border-top:1px solid rgba(255,255,255,.06);
+}
+.hero-stat{text-align:center}
+.hero-stat-num{
+  font-family:var(--font-display);font-weight:700;font-size:28px;
+  color:#fff;letter-spacing:-1px;
+}
+.hero-stat-label{font-size:13px;color:var(--gray-500);margin-top:4px}
+
+/* ASSESSMENT SCREEN */
+.assessment-wrap{padding:20px 0 80px}
+
+/* Progress */
+.progress-section{margin-bottom:40px}
+.progress-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.progress-step{font-family:var(--font-display);font-weight:600;font-size:14px;color:var(--gray-300)}
+.progress-pct{font-family:var(--font-display);font-weight:500;font-size:13px;color:var(--gray-500)}
+.progress-track{
+  height:4px;background:var(--gray-800);border-radius:100px;overflow:hidden;
+  position:relative;
+}
+.progress-fill{
+  height:100%;border-radius:100px;transition:width .5s cubic-bezier(.16,1,.3,1);
+  background:linear-gradient(90deg,var(--blue-600),var(--blue-500));
+  box-shadow:0 0 12px rgba(37,99,235,.4);
+}
+.step-dots{display:flex;gap:8px;margin-top:16px;justify-content:center}
+.step-dot{
+  width:8px;height:8px;border-radius:50%;background:var(--gray-700);
+  transition:all .3s;cursor:pointer;
+}
+.step-dot.active{background:var(--blue-500);box-shadow:0 0 8px rgba(37,99,235,.5)}
+.step-dot.done{background:var(--green)}
+
+/* Dimension header */
+.dim-header{margin-bottom:36px;display:flex;align-items:center;gap:16px}
+.dim-icon{
+  width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;
+  font-size:24px;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.15);
+  flex-shrink:0;
+}
+.dim-header-text h2{
+  font-family:var(--font-display);font-weight:700;font-size:22px;color:#fff;
+  letter-spacing:-0.5px;margin-bottom:2px;
+}
+.dim-header-text p{font-size:14px;color:var(--gray-500)}
+
+/* Question card */
+.question-card{
+  background:linear-gradient(135deg,rgba(255,255,255,.03),rgba(255,255,255,.01));
+  border:1px solid rgba(255,255,255,.06);border-radius:var(--radius-lg);
+  padding:28px;margin-bottom:20px;
+  transition:border-color .3s;
+}
+.question-card.answered{border-color:rgba(37,99,235,.2)}
+.question-num{
+  font-family:var(--font-display);font-weight:700;font-size:11px;
+  color:var(--blue-500);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;
+}
+.question-text{
+  font-family:var(--font-display);font-weight:600;font-size:17px;line-height:1.5;
+  color:#fff;margin-bottom:20px;letter-spacing:-0.2px;
+}
+.options{display:flex;flex-direction:column;gap:8px}
+.option{
+  display:flex;align-items:flex-start;gap:12px;padding:12px 16px;
+  border-radius:var(--radius);cursor:pointer;transition:all .2s;
+  border:1px solid transparent;position:relative;
+}
+.option:hover{background:rgba(255,255,255,.03);border-color:rgba(255,255,255,.06)}
+.option.selected{
+  background:rgba(37,99,235,.08);border-color:rgba(37,99,235,.3);
+}
+.option-radio{
+  width:20px;height:20px;border-radius:50%;flex-shrink:0;margin-top:1px;
+  border:2px solid var(--gray-600);transition:all .2s;position:relative;
+}
+.option.selected .option-radio{
+  border-color:var(--blue-500);background:var(--blue-600);
+  box-shadow:0 0 8px rgba(37,99,235,.4);
+}
+.option.selected .option-radio::after{
+  content:'';position:absolute;width:8px;height:8px;background:#fff;
+  border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);
+}
+.option-level{
+  font-family:var(--font-display);font-weight:700;font-size:12px;
+  color:var(--gray-500);min-width:20px;margin-top:2px;
+}
+.option.selected .option-level{color:var(--blue-400)}
+.option-text{font-size:14px;line-height:1.5;color:var(--gray-300);flex:1}
+.option.selected .option-text{color:var(--gray-100)}
+
+/* Nav buttons */
+.assessment-nav{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-top:40px;padding-top:24px;border-top:1px solid rgba(255,255,255,.06);
+}
+.btn-secondary{
+  font-family:var(--font-display);font-weight:600;font-size:14px;
+  padding:12px 28px;border:1px solid rgba(255,255,255,.1);border-radius:100px;
+  cursor:pointer;color:var(--gray-300);background:transparent;
+  transition:all .3s;
+}
+.btn-secondary:hover{border-color:rgba(255,255,255,.2);color:#fff;background:rgba(255,255,255,.04)}
+.btn-secondary:disabled{opacity:.3;cursor:not-allowed}
+.btn-next{
+  font-family:var(--font-display);font-weight:600;font-size:14px;
+  padding:12px 32px;border:none;border-radius:100px;cursor:pointer;
+  color:#fff;background:linear-gradient(135deg,var(--blue-600),var(--blue-700));
+  box-shadow:0 0 20px rgba(37,99,235,.2);transition:all .3s;
+}
+.btn-next:hover{box-shadow:0 0 30px rgba(37,99,235,.35);transform:translateY(-1px)}
+.btn-next:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-next .arrow{display:inline-block;margin-left:6px;transition:transform .2s}
+.btn-next:hover:not(:disabled) .arrow{transform:translateX(3px)}
+
+/* LEAD CAPTURE SCREEN */
+.lead-wrap{
+  min-height:calc(100vh - 80px);display:flex;align-items:center;
+  justify-content:center;padding:40px 24px;
+}
+.lead-card{
+  max-width:480px;width:100%;
+  background:linear-gradient(135deg,rgba(255,255,255,.04),rgba(255,255,255,.01));
+  border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-lg);
+  padding:48px 40px;position:relative;overflow:hidden;
+}
+.lead-card::before{
+  content:'';position:absolute;top:-40px;right:-40px;width:120px;height:120px;
+  border-radius:50%;background:rgba(37,99,235,.08);filter:blur(40px);pointer-events:none;
+}
+.lead-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);
+  border-radius:100px;padding:6px 14px;margin-bottom:20px;
+  font-family:var(--font-display);font-size:12px;font-weight:600;color:var(--green);
+}
+.lead-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.lead-title{
+  font-family:var(--font-display);font-weight:700;font-size:26px;
+  color:#fff;letter-spacing:-1px;margin-bottom:8px;
+}
+.lead-desc{font-size:15px;color:var(--gray-400);line-height:1.6;margin-bottom:32px}
+.form-group{margin-bottom:18px}
+.form-label{
+  font-family:var(--font-display);font-weight:600;font-size:13px;
+  color:var(--gray-300);display:block;margin-bottom:6px;
+}
+.form-label .optional{color:var(--gray-600);font-weight:400;margin-left:4px}
+.form-input,.form-select{
+  width:100%;padding:12px 16px;border-radius:var(--radius);
+  border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);
+  color:#fff;font-family:var(--font-body);font-size:15px;
+  transition:all .2s;outline:none;
+}
+.form-input:focus,.form-select:focus{border-color:var(--blue-500);box-shadow:0 0 0 3px rgba(37,99,235,.15)}
+.form-input::placeholder{color:var(--gray-600)}
+.form-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%236B7280' stroke-width='1.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 16px center;padding-right:40px}
+.form-select option{background:var(--gray-800);color:#fff}
+.lead-submit{width:100%;margin-top:8px}
+.lead-skip{
+  display:block;text-align:center;margin-top:16px;
+  font-size:13px;color:var(--gray-600);cursor:pointer;transition:color .2s;
+  background:none;border:none;font-family:var(--font-body);
+}
+.lead-skip:hover{color:var(--gray-400)}
+
+/* RESULTS SCREEN */
+.results-wrap{padding:20px 0 80px}
+.results-container{max-width:960px;margin:0 auto;padding:0 24px}
+
+/* Overall score */
+.overall-section{
+  text-align:center;padding:48px 0 56px;
+  border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:48px;
+}
+.overall-label{
+  font-family:var(--font-display);font-size:13px;font-weight:600;
+  letter-spacing:2px;text-transform:uppercase;color:var(--gray-500);margin-bottom:20px;
+}
+.overall-score-ring{
+  width:160px;height:160px;margin:0 auto 20px;position:relative;
+}
+.overall-score-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.overall-score-ring .track{fill:none;stroke:var(--gray-800);stroke-width:6}
+.overall-score-ring .fill-circle{
+  fill:none;stroke-width:6;stroke-linecap:round;
+  transition:stroke-dashoffset 1.5s cubic-bezier(.16,1,.3,1);
+}
+.overall-num{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+}
+.overall-num .score{
+  font-family:var(--font-display);font-weight:800;font-size:48px;
+  letter-spacing:-2px;color:#fff;line-height:1;
+}
+.overall-num .out-of{font-size:14px;color:var(--gray-500);margin-top:2px}
+.overall-level{
+  font-family:var(--font-display);font-weight:700;font-size:22px;
+  letter-spacing:-0.5px;margin-bottom:8px;
+}
+.overall-desc{font-size:15px;color:var(--gray-400);max-width:500px;margin:0 auto;line-height:1.6}
+
+/* Radar chart */
+.radar-section{
+  display:flex;flex-direction:column;align-items:center;
+  margin-bottom:56px;padding-bottom:56px;border-bottom:1px solid rgba(255,255,255,.06);
+}
+.radar-title{
+  font-family:var(--font-display);font-weight:700;font-size:18px;
+  color:#fff;letter-spacing:-0.3px;margin-bottom:32px;
+}
+.radar-svg{max-width:420px;width:100%}
+
+/* Dimension cards */
+.dim-results-title{
+  font-family:var(--font-display);font-weight:700;font-size:18px;
+  color:#fff;letter-spacing:-0.3px;margin-bottom:24px;
+}
+.dim-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.dim-card{
+  background:linear-gradient(135deg,rgba(255,255,255,.03),rgba(255,255,255,.01));
+  border:1px solid rgba(255,255,255,.06);border-radius:var(--radius-lg);
+  padding:24px;position:relative;overflow:hidden;
+  transition:border-color .3s;
+}
+.dim-card:hover{border-color:rgba(255,255,255,.1)}
+.dim-card-accent{position:absolute;top:0;left:0;right:0;height:3px;border-radius:3px 3px 0 0}
+.dim-card-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.dim-card-name{
+  font-family:var(--font-display);font-weight:600;font-size:15px;color:#fff;
+}
+.dim-card-score{
+  font-family:var(--font-display);font-weight:800;font-size:24px;
+  letter-spacing:-1px;line-height:1;
+}
+.dim-card-level{
+  font-family:var(--font-display);font-weight:600;font-size:12px;
+  letter-spacing:.5px;margin-bottom:4px;
+}
+.dim-card-bar{
+  height:4px;background:var(--gray-800);border-radius:100px;margin-bottom:16px;overflow:hidden;
+}
+.dim-card-bar-fill{height:100%;border-radius:100px;transition:width 1.2s cubic-bezier(.16,1,.3,1)}
+.dim-card-rec{font-size:13px;line-height:1.6;color:var(--gray-400)}
+.dim-card-rec strong{color:var(--gray-200);font-weight:600}
+
+/* CTA */
+.results-cta{
+  margin-top:56px;padding:48px;text-align:center;
+  background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(37,99,235,.03));
+  border:1px solid rgba(37,99,235,.15);border-radius:var(--radius-lg);
+  position:relative;overflow:hidden;
+}
+.results-cta::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 50% 0%,rgba(37,99,235,.12),transparent 60%);
+  pointer-events:none;
+}
+.results-cta h3{
+  font-family:var(--font-display);font-weight:700;font-size:24px;
+  color:#fff;letter-spacing:-0.5px;margin-bottom:12px;position:relative;
+}
+.results-cta p{
+  font-size:15px;color:var(--gray-400);line-height:1.6;
+  max-width:420px;margin:0 auto 28px;position:relative;
+}
+.results-cta .btn-primary{position:relative}
+
+.results-actions{
+  display:flex;justify-content:center;gap:16px;margin-top:24px;
+}
+
+/* Responsive */
+@media(max-width:768px){
+  .hero-stats{flex-direction:column;gap:24px}
+  .dim-grid{grid-template-columns:1fr}
+  .lead-card{padding:32px 24px}
+  .results-cta{padding:32px 24px}
+  .container{padding:0 16px}
+}
+@media(max-width:480px){
+  .hero-title{letter-spacing:-1px}
+  .topbar-badge{display:none}
+  .option{padding:10px 12px}
+}
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="container">
+    <a class="logo" href="#">
+      <div class="logo-mark">AB</div>
+      <span class="logo-text">Aava &amp; Bang AI</span>
+    </a>
+    <div class="topbar-badge">RevOps Kartoitus</div>
+  </div>
+</div>
+
+<!-- SCREEN 1: LANDING -->
+<div id="screen-landing" class="screen active">
+  <div class="landing-hero">
+    <div class="hero-overline">Maksuton kartoitus</div>
+    <h1 class="hero-title">Kuinka kyps&auml; on<br>organisaatiosi <span>RevOps?</span></h1>
+    <p class="hero-desc">Selvit&auml; Revenue Operations -kypsyystasosi 18 kysymyksell&auml;. Saat visuaalisen raportin ja konkreettiset suositukset kehityskohtiin.</p>
+    <button class="btn-primary" onclick="startAssessment()">
+      Aloita kartoitus
+    </button>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-num">~10 min</div>
+        <div class="hero-stat-label">Arvioitu kesto</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num">6</div>
+        <div class="hero-stat-label">Osa-aluetta</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num">18</div>
+        <div class="hero-stat-label">Kysymyst&auml;</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 2: ASSESSMENT -->
+<div id="screen-assessment" class="screen">
+  <div class="container assessment-wrap">
+    <div class="progress-section">
+      <div class="progress-meta">
+        <div class="progress-step" id="progress-step-label"></div>
+        <div class="progress-pct" id="progress-pct"></div>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="step-dots" id="step-dots"></div>
+    </div>
+    <div id="assessment-content"></div>
+    <div class="assessment-nav">
+      <button class="btn-secondary" id="btn-prev" onclick="prevStep()">Edellinen</button>
+      <button class="btn-next" id="btn-next" onclick="nextStep()">Seuraava <span class="arrow">&rarr;</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 3: LEAD CAPTURE -->
+<div id="screen-lead" class="screen">
+  <div class="lead-wrap">
+    <div class="lead-card">
+      <div class="lead-badge">Kartoitus valmis</div>
+      <h2 class="lead-title">Tuloksesi ovat valmiit!</h2>
+      <p class="lead-desc">T&auml;yt&auml; yhteystietosi niin saat tulokset ja personoidut kehityssuositukset.</p>
+      <form onsubmit="submitLead(event)">
+        <div class="form-group">
+          <label class="form-label">Nimi</label>
+          <input class="form-input" type="text" id="lead-name" placeholder="Etunimi Sukunimi" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">S&auml;hk&ouml;posti</label>
+          <input class="form-input" type="email" id="lead-email" placeholder="nimi@yritys.fi" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Yritys</label>
+          <input class="form-input" type="text" id="lead-company" placeholder="Yrityksen nimi" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Rooli <span class="optional">(valinnainen)</span></label>
+          <select class="form-select" id="lead-role">
+            <option value="">Valitse rooli</option>
+            <option>Myyntijohtaja</option>
+            <option>Markkinointijohtaja</option>
+            <option>Revenue Operations</option>
+            <option>Toimitusjohtaja</option>
+            <option>Muu</option>
+          </select>
+        </div>
+        <button class="btn-primary lead-submit" type="submit">N&auml;yt&auml; tulokset</button>
+      </form>
+      <button class="lead-skip" onclick="showResults()">Ohita ja n&auml;yt&auml; tulokset</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 4: RESULTS -->
+<div id="screen-results" class="screen">
+  <div class="results-container results-wrap" id="results-content"></div>
+</div>
+
+<script>
+// ===== DATA =====
+var DIMENSIONS = [
+  {
+    id:'strategy', name:'Strategia ja johtaminen', icon:'\u2696',
+    desc:'GTM-strategian linjaus ja johdon sitoutuminen',
+    questions:[
+      {
+        text:'Miten hyvin myynti-, markkinointi- ja asiakaspalvelutiimien tavoitteet ovat linjassa kesken\u00e4\u00e4n?',
+        options:[
+          'Jokaisella tiimill\u00e4 on omat erilliset tavoitteet, jotka eiv\u00e4t liity toisiinsa',
+          'Joitain yhteisi\u00e4 mittareita on tunnistettu, mutta niit\u00e4 ei seurata aktiivisesti',
+          'Yhteiset tavoitteet on dokumentoitu ja niit\u00e4 seurataan kuukausittain',
+          'Tiimit jakavat yhteiset KPI:t ja tekev\u00e4t aktiivista yhteisty\u00f6t\u00e4 niiden saavuttamiseksi',
+          'Kaikki tiimit toimivat yhteisen revenue-strategian pohjalta, jota optimoidaan jatkuvasti'
+        ]
+      },
+      {
+        text:'Miten johto suhtautuu Revenue Operations -toimintamalliin?',
+        options:[
+          'RevOps-k\u00e4sitett\u00e4 ei tunneta tai sit\u00e4 ei pidet\u00e4 t\u00e4rke\u00e4n\u00e4',
+          'Johto on tietoinen RevOpsin hy\u00f6dyist\u00e4, mutta resursseja ei ole varattu',
+          'RevOpsille on nimetty vastuuhenkil\u00f6 ja budjetti',
+          'RevOps on strateginen prioriteetti ja johtoryhm\u00e4ss\u00e4 k\u00e4sitelt\u00e4v\u00e4 teema',
+          'RevOps ohjaa koko liiketoimintastrategiaa ja sill\u00e4 on C-tason tuki'
+        ]
+      },
+      {
+        text:'Miten myyntiputken ennustaminen (forecasting) toteutuu organisaatiossanne?',
+        options:[
+          'Ennustamista ei tehd\u00e4 systemaattisesti',
+          'Ennusteet perustuvat myyjien henkil\u00f6kohtaisiin arvioihin',
+          'K\u00e4ytet\u00e4\u00e4n CRM-dataa ennustamiseen, mutta prosessi on osittain manuaalinen',
+          'Ennustaminen on datapohjaista ja se kattaa koko myyntiputken',
+          'K\u00e4ytet\u00e4\u00e4n teko\u00e4lypohjaista ennustamista, joka huomioi historiallisen datan ja markkinatrendit'
+        ]
+      }
+    ],
+    recommendations:{
+      1:'Aloita m\u00e4\u00e4rittelem\u00e4ll\u00e4 yhteinen revenue-tavoite myynnille, markkinoinnille ja asiakaspalvelulle. Perusta s\u00e4\u00e4nn\u00f6llinen johtoryhm\u00e4tasoinen RevOps-katsaus.',
+      2:'Dokumentoi yhteiset KPI:t ja nime\u00e4 RevOps-vastuuhenkil\u00f6. Aloita CRM-pohjainen pipeline-seuranta.',
+      3:'Syvenn\u00e4 johdon sitoutumista RevOpsiin strategisena prioriteettina. Investoi dataohjattuun ennustamiseen.',
+      4:'Integroi RevOps osaksi liiketoimintastrategiaa. Siirry ennakoivaan analytiikkaan ja teko\u00e4lypohjaiseen ennustamiseen.',
+      5:'Yll\u00e4pid\u00e4 etumatkaasi: jaa parhaita k\u00e4yt\u00e4nt\u00f6j\u00e4si, mentoroi muita ja etsi jatkuvasti uusia tapoja optimoida.'
+    }
+  },
+  {
+    id:'process', name:'Prosessit', icon:'\u2699',
+    desc:'Myyntiprosessin dokumentointi, standardointi ja handoffit',
+    questions:[
+      {
+        text:'Miten lead-to-revenue -prosessinne on m\u00e4\u00e4ritelty?',
+        options:[
+          'Ei ole yhten\u00e4ist\u00e4 prosessia \u2013 jokainen tiimi toimii omalla tavallaan',
+          'Perusvaiheet on tunnistettu, mutta prosessi ei ole dokumentoitu',
+          'Prosessi on dokumentoitu ja kaikkien tiedossa, mutta noudattaminen vaihtelee',
+          'Prosessi on standardoitu, mitattu ja sit\u00e4 noudatetaan johdonmukaisesti',
+          'Prosessia optimoidaan jatkuvasti datan perusteella ja se mukautuu automaattisesti'
+        ]
+      },
+      {
+        text:'Miten liidien kvalifiointi ja siirto myynnille (handoff) toimii?',
+        options:[
+          'Markkinointi ja myynti toimivat t\u00e4ysin erill\u00e4\u00e4n \u2013 ei m\u00e4\u00e4ritelty\u00e4 prosessia',
+          'Perus-lead scoring on k\u00e4yt\u00f6ss\u00e4, mutta kriteerit ovat ep\u00e4selvi\u00e4',
+          'MQL/SQL-kriteerit on m\u00e4\u00e4ritelty yhteisesti ja SLA on paikallaan',
+          'Automaattinen lead scoring ja routing, jota seurataan ja optimoidaan',
+          'Ennakoiva lead scoring ja reaaliaikainen handoff, jota teko\u00e4ly tukee'
+        ]
+      },
+      {
+        text:'Miten asiakaspoistuman (churn) ehk\u00e4isy on organisoitu?',
+        options:[
+          'Reagoidaan vasta kun asiakas ilmoittaa l\u00e4htev\u00e4ns\u00e4',
+          'Asiakastyytyv\u00e4isyytt\u00e4 mitataan, mutta toimenpiteet ovat reaktiivisia',
+          'Churnia seurataan mittarein ja varoitusmerkkien tunnistaminen on aloitettu',
+          'Systemaattinen health score -j\u00e4rjestelm\u00e4 ja proaktiiviset toimenpiteet',
+          'Ennakoiva analytiikka tunnistaa riskit automaattisesti ja k\u00e4ynnist\u00e4\u00e4 toimenpiteet'
+        ]
+      }
+    ],
+    recommendations:{
+      1:'Dokumentoi nykyinen lead-to-revenue -prosessi ja tunnista kriittisimm\u00e4t pullonkaulat. M\u00e4\u00e4rittele perus-handoff -s\u00e4\u00e4nn\u00f6t markkinoinnin ja myynnin v\u00e4lille.',
+      2:'Luo yhteisesti sovitut MQL/SQL-kriteerit ja SLA markkinoinnin ja myynnin v\u00e4lille. Aloita churnin systemaattinen seuranta.',
+      3:'Automatisoi lead scoring ja routing. Rakenna asiakkaan health score -j\u00e4rjestelm\u00e4 proaktiiviseen churnin ehk\u00e4isyyn.',
+      4:'Ota k\u00e4ytt\u00f6\u00f6n ennakoiva analytiikka prosessien optimoinnissa. Rakenna automaattisesti mukautuvat myyntiprosessit.',
+      5:'Jatka prosessien jatkuvaa optimointia ja jaa oppisi organisaatiossa. Hy\u00f6dynn\u00e4 teko\u00e4ly\u00e4 prosessien itsekorjautuvuudessa.'
+    }
+  },
+  {
+    id:'data', name:'Data ja analytiikka', icon:'\u25A6',
+    desc:'Datan laatu, raportointi ja analytiikan hy\u00f6dynt\u00e4minen',
+    questions:[
+      {
+        text:'Miten asiakasdata on organisoitu ja saatavilla?',
+        options:[
+          'Data on hajallaan eri j\u00e4rjestelmiss\u00e4 ja Excel-tiedostoissa',
+          'CRM on k\u00e4yt\u00f6ss\u00e4, mutta dataa ei pidet\u00e4 ajantasaisena',
+          'Keskeinen data on keskitetty ja p\u00e4ivityksist\u00e4 vastataan',
+          'Yhten\u00e4inen dataj\u00e4rjestelm\u00e4 kattaa koko asiakaspolun',
+          'Reaaliaikainen, automatisoitu datavirta kaikkien j\u00e4rjestelmien v\u00e4lill\u00e4'
+        ]
+      },
+      {
+        text:'Miten raportointi ja mittaaminen on toteutettu?',
+        options:[
+          'Raportointi on manuaalista ja satunnaista',
+          'Perusraportit on olemassa, mutta ne ovat tiimitasoisia siiloja',
+          'Yhteiset dashboardit myynnille, markkinoinnille ja asiakaspalvelulle',
+          'Automaattiset raportit ja h\u00e4lytykset reaaliajassa',
+          'Edistynyt analytiikka, predictive-mallit ja automaattinen insightien tuottaminen'
+        ]
+      },
+      {
+        text:'Miten datan laatu ja hallinta on j\u00e4rjestetty?',
+        options:[
+          'Datan laatu on heikko eik\u00e4 sit\u00e4 valvota',
+          'Satunnaista datan siivousta tehd\u00e4\u00e4n, mutta ei ole s\u00e4\u00e4nt\u00f6j\u00e4',
+          'Datan omistajuus on m\u00e4\u00e4ritelty ja laatus\u00e4\u00e4nn\u00f6t ovat k\u00e4yt\u00f6ss\u00e4',
+          'Automaattinen datan validointi ja deduplikaatio',
+          'Datan hallintamalli (data governance) on kattava ja auditoitu'
+        ]
+      }
+    ],
+    recommendations:{
+      1:'Keskit\u00e4 asiakasdata yhteen CRM-j\u00e4rjestelm\u00e4\u00e4n. Luo perusraportit myynnin, markkinoinnin ja asiakaspalvelun suorituskyvyst\u00e4.',
+      2:'M\u00e4\u00e4rittele datan omistajuudet ja peruslaatuvaatimukset. Rakenna yhteiset dashboardit eri tiimeille.',
+      3:'Ota k\u00e4ytt\u00f6\u00f6n automaattinen datan validointi ja deduplikaatio. Siirry reaaliaikaiseen raportointiin.',
+      4:'Investoi ennakoivaan analytiikkaan ja predictive-malleihin. Rakenna kattava data governance -malli.',
+      5:'Hy\u00f6dynn\u00e4 kehittynyttt\u00e4 analytiikkaa strategisessa p\u00e4\u00e4t\u00f6ksenteossa. Jaa data-osaamistasi koko organisaatiolle.'
+    }
+  },
+  {
+    id:'tech', name:'Teknologia ja ty\u00f6kalut', icon:'\u2318',
+    desc:'CRM, automaatio, integraatiot ja teknologiapino',
+    questions:[
+      {
+        text:'Miten CRM-j\u00e4rjestelm\u00e4nne palvelee revenue-toimintoja?',
+        options:[
+          'CRM:\u00e4\u00e4 ei ole k\u00e4yt\u00f6ss\u00e4 tai sit\u00e4 k\u00e4ytet\u00e4\u00e4n minimaalisesti',
+          'CRM on k\u00e4yt\u00f6ss\u00e4 myynnill\u00e4, mutta muut tiimit eiv\u00e4t hy\u00f6dynn\u00e4 sit\u00e4',
+          'CRM on yhten\u00e4inen ty\u00f6kalu myynnille ja markkinoinnille',
+          'CRM on integroitu kaikkiin revenue-j\u00e4rjestelmiin ja automaatiot ovat k\u00e4yt\u00f6ss\u00e4',
+          'CRM toimii revenue-toimintojen keskuksena, jota teko\u00e4ly rikastaa'
+        ]
+      },
+      {
+        text:'Miten markkinoinnin automaatio on toteutettu?',
+        options:[
+          'Ei k\u00e4ytet\u00e4 markkinoinnin automaatiota',
+          'Perus-s\u00e4hk\u00f6postiautomaatiot ovat k\u00e4yt\u00f6ss\u00e4',
+          'Monikanavainen automaatio ja nurture-polut on rakennettu',
+          'Automaatiot ovat personoituja ja datapohjaisia',
+          'T\u00e4ysin integroitu, teko\u00e4lyohjattu omnichannel-automaatio'
+        ]
+      },
+      {
+        text:'Miten hyvin j\u00e4rjestelm\u00e4t keskustelevat kesken\u00e4\u00e4n (integraatiot)?',
+        options:[
+          'J\u00e4rjestelm\u00e4t ovat erillisi\u00e4 \u2013 data siirret\u00e4\u00e4n manuaalisesti',
+          'Joitain yksitt\u00e4isi\u00e4 integraatioita on tehty',
+          'Keskeiset j\u00e4rjestelm\u00e4t on integroitu ja datavirta on m\u00e4\u00e4ritelty',
+          'Kokonaisvaltainen integraatioarkkitehtuuri (esim. iPaaS-ratkaisu)',
+          'Reaaliaikainen, kaksisuuntainen integraatio kaikkien j\u00e4rjestelmien v\u00e4lill\u00e4'
+        ]
+      }
+    ],
+    recommendations:{
+      1:'Ota CRM k\u00e4ytt\u00f6\u00f6n kaikille revenue-tiimeille ja varmista perusk\u00e4ytt\u00f6. Kartoita nykyiset j\u00e4rjestelm\u00e4t ja datavirrat.',
+      2:'Laajenna CRM:n k\u00e4ytt\u00f6 markkinointiin. Aloita markkinoinnin automaatio ja rakenna perusintegraatiot.',
+      3:'Integroi CRM kaikkiin revenue-j\u00e4rjestelmiin. Rakenna dataohjatut automaatiot ja nurture-polut.',
+      4:'Investoi iPaaS-ratkaisuun ja rakenna reaaliaikaiset integraatiot. Ota k\u00e4ytt\u00f6\u00f6n teko\u00e4lyohjattu automaatio.',
+      5:'Pysy teknologian k\u00e4rjess\u00e4: arvioi s\u00e4\u00e4nn\u00f6llisesti uusia ty\u00f6kaluja ja varmista, ett\u00e4 teknologiapinosi skaalautuu kasvun mukana.'
+    }
+  },
+  {
+    id:'people', name:'Ihmiset ja kulttuuri', icon:'\u2661',
+    desc:'Tiimien yhteisty\u00f6, osaaminen ja muutoskyky',
+    questions:[
+      {
+        text:'Miten tiimien v\u00e4linen yhteisty\u00f6 toimii myynnin, markkinoinnin ja asiakaspalvelun v\u00e4lill\u00e4?',
+        options:[
+          'Tiimit toimivat siiloissa \u2013 v\u00e4h\u00e4n tai ei lainkaan yhteisty\u00f6t\u00e4',
+          'Satunnaisia yhteispalavereita pidet\u00e4\u00e4n',
+          'S\u00e4\u00e4nn\u00f6lliset yhteiset palaverit ja jaetut prosessit',
+          'Tiivis yhteisty\u00f6, yhteiset tavoitteet ja jaettu vastuu tuloksista',
+          'T\u00e4ysin integroitu revenue-tiimi, jossa rajat ovat h\u00e4ilystyneet'
+        ]
+      },
+      {
+        text:'Miten RevOps-osaaminen ja -resurssit on j\u00e4rjestetty?',
+        options:[
+          'Ei ole erillist\u00e4 RevOps-osaamista',
+          'Yksitt\u00e4isi\u00e4 henkil\u00f6it\u00e4 tekee RevOps-tyyppisi\u00e4 teht\u00e4vi\u00e4 oman toimen ohella',
+          'RevOps-rooli tai -tiimi on perustettu',
+          'Dedikoitu RevOps-tiimi, joka palvelee kaikkia revenue-funktioita',
+          'RevOps-organisaatio, jolla on strateginen rooli ja jatkuva osaamisen kehitt\u00e4minen'
+        ]
+      },
+      {
+        text:'Miten muutoksenhallinta ja uusien toimintatapojen k\u00e4ytt\u00f6\u00f6notto sujuu?',
+        options:[
+          'Muutokset kohtaavat vahvaa vastarintaa',
+          'Muutoksia tehd\u00e4\u00e4n, mutta ilman systemaattista muutoksenhallintaa',
+          'Muutoksenhallintaprosessi on olemassa ja koulutuksia j\u00e4rjestet\u00e4\u00e4n',
+          'Muutokset jalkautetaan suunnitelmallisesti ja niiden vaikutuksia mitataan',
+          'Jatkuvan parantamisen kulttuuri \u2013 muutokset omaksutaan nopeasti'
+        ]
+      }
+    ],
+    recommendations:{
+      1:'Aloita s\u00e4\u00e4nn\u00f6lliset yhteiset palaverit myynnin, markkinoinnin ja asiakaspalvelun v\u00e4lille. Tunnista RevOps-vastuut.',
+      2:'Perusta RevOps-rooli tai nime\u00e4 vastuuhenkil\u00f6. Luo muutoksenhallintaprosessi ja koulutussuunnitelma.',
+      3:'Kasvata RevOps-tiimi dedikoiduksi. Aseta yhteiset tavoitteet tiimien v\u00e4lille ja mittaa yhteisty\u00f6n tuloksia.',
+      4:'Kehit\u00e4 RevOps-organisaatiosta strateginen funktio. Rakenna jatkuvan parantamisen kulttuuri.',
+      5:'Toimi RevOps-edell\u00e4k\u00e4vij\u00e4n\u00e4: mentoroi, jaa osaamistasi ja innovoi uusia yhteisty\u00f6malleja.'
+    }
+  },
+  {
+    id:'journey', name:'Asiakaspolku', icon:'\u279C',
+    desc:'Ostopolun hallinta, yhten\u00e4isyys ja asiakasarvon kasvattaminen',
+    questions:[
+      {
+        text:'Miten hyvin tunnette asiakkaanne ostopolun?',
+        options:[
+          'Asiakkaan ostopolkua ei ole kartoitettu',
+          'Perusk\u00e4sitys ostopolusta on olemassa, mutta se ei ole dokumentoitu',
+          'Ostopolku on kartoitettu ja dokumentoitu, avainvaiheet tunnistettu',
+          'Ostopolku on mitattavissa ja kosketuspisteet on optimoitu',
+          'Reaaliaikainen n\u00e4kym\u00e4 asiakaspolkuun ja ennakoiva personointi'
+        ]
+      },
+      {
+        text:'Miten yhten\u00e4isen\u00e4 asiakas kokee br\u00e4ndinne eri kosketuspisteiss\u00e4?',
+        options:[
+          'Viestint\u00e4 on hajanaista ja vaihtelee kanavittain',
+          'Perus-br\u00e4ndiohjeistus on olemassa, mutta toteutus vaihtelee',
+          'Yhten\u00e4inen viestint\u00e4 ja prosessit eri kanavissa',
+          'Personoitu, johdonmukainen kokemus kaikissa kosketuspisteiss\u00e4',
+          'Saumaton omnichannel-kokemus, jota teko\u00e4ly optimoi reaaliajassa'
+        ]
+      },
+      {
+        text:'Miten asiakasarvon (CLV/LTV) kasvattaminen on organisoitu?',
+        options:[
+          'Ei systemaattista l\u00e4hestymistapaa lis\u00e4myyntiin',
+          'Satunnaisia upsell/cross-sell -yrityksi\u00e4 tehd\u00e4\u00e4n',
+          'Lis\u00e4myyntistrategia on m\u00e4\u00e4ritelty ja vastuutettu',
+          'Dataohjattu lis\u00e4myynti integroituna asiakaspolkuun',
+          'Teko\u00e4lyohjattu next-best-action -j\u00e4rjestelm\u00e4, joka maksimoi asiakasarvon'
+        ]
+      }
+    ],
+    recommendations:{
+      1:'Kartoita asiakkaan ostopolku ja tunnista kriittisimm\u00e4t kosketuspisteet. Luo perus-br\u00e4ndiohjeistus kaikille kanaville.',
+      2:'Dokumentoi ostopolku ja yhten\u00e4ist\u00e4 viestint\u00e4 kanavien v\u00e4lill\u00e4. M\u00e4\u00e4rittele lis\u00e4myyntistrategia.',
+      3:'Optimoi kosketuspisteet ja ota k\u00e4ytt\u00f6\u00f6n personointi. Integroi lis\u00e4myynti osaksi asiakaspolkua.',
+      4:'Rakenna reaaliaikainen n\u00e4kym\u00e4 asiakaspolkuun. Ota k\u00e4ytt\u00f6\u00f6n dataohjattu next-best-action -l\u00e4hestymistapa.',
+      5:'Hy\u00f6dynn\u00e4 teko\u00e4ly\u00e4 asiakaspolun jatkuvassa optimoinnissa. Toimi esimerkkin\u00e4 asiakaskokemuksen johtamisessa.'
+    }
+  }
+];
+
+var LEVELS = [
+  {min:1.0,max:1.4,name:'Ad Hoc',color:'#EF4444',
+    desc:'RevOps-toimintamalli on alkutekij\u00f6iss\u00e4\u00e4n. Tiimit toimivat siiloissa ilman yhteist\u00e4 prosessia tai dataa.'},
+  {min:1.5,max:2.4,name:'Reagoiva',color:'#F97316',
+    desc:'Organisaatio tunnistaa RevOpsin tarpeen, mutta toiminta on reaktiivista ja j\u00e4rjestelm\u00e4t ovat hajanaisia.'},
+  {min:2.5,max:3.4,name:'M\u00e4\u00e4ritelty',color:'#EAB308',
+    desc:'Prosessit on dokumentoitu ja yhteisty\u00f6 on alkanut. Perusta on kunnossa, mutta automaatio ja data-ohjautuvuus puuttuvat.'},
+  {min:3.5,max:4.4,name:'Hallittu',color:'#22C55E',
+    desc:'RevOps toimii strategisena funktiona. Data ohjaa p\u00e4\u00e4t\u00f6ksi\u00e4, automaatio tehostaa prosesseja ja tiimit tekev\u00e4t tiivist\u00e4 yhteisty\u00f6t\u00e4.'},
+  {min:4.5,max:5.0,name:'Optimoitu',color:'#3B82F6',
+    desc:'RevOps on organisaation kilpailuetu. Teko\u00e4ly, ennakoiva analytiikka ja jatkuva optimointi ohjaavat kaikkea toimintaa.'}
+];
+
+// ===== STATE =====
+var state = { currentStep: 0, answers: {} };
+
+try {
+  var saved = localStorage.getItem('revops-assessment');
+  if (saved) {
+    var parsed = JSON.parse(saved);
+    if (parsed.answers) state.answers = parsed.answers;
+  }
+} catch(e) {}
+
+function saveState() {
+  try { localStorage.setItem('revops-assessment', JSON.stringify(state)); } catch(e) {}
+}
+
+// ===== NAVIGATION =====
+function showScreen(id) {
+  var screens = document.querySelectorAll('.screen');
+  for (var i = 0; i < screens.length; i++) screens[i].classList.remove('active');
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function startAssessment() {
+  showScreen('screen-assessment');
+  renderStep();
+}
+
+function renderStep() {
+  var dim = DIMENSIONS[state.currentStep];
+  var totalSteps = DIMENSIONS.length;
+  var totalAnswered = Object.keys(state.answers).length;
+  var pct = Math.round((totalAnswered / 18) * 100);
+
+  document.getElementById('progress-step-label').textContent =
+    'Vaihe ' + (state.currentStep + 1) + ' / ' + totalSteps + ': ' + dim.name;
+  document.getElementById('progress-pct').textContent = pct + '% valmis';
+  document.getElementById('progress-fill').style.width = pct + '%';
+
+  // Step dots
+  var dotsContainer = document.getElementById('step-dots');
+  dotsContainer.textContent = '';
+  for (var i = 0; i < totalSteps; i++) {
+    var dot = document.createElement('div');
+    dot.className = 'step-dot';
+    var dimI = DIMENSIONS[i];
+    var allDone = true;
+    for (var qi = 0; qi < dimI.questions.length; qi++) {
+      if (state.answers[dimI.id + '_' + qi] === undefined) { allDone = false; break; }
+    }
+    if (i === state.currentStep) dot.classList.add('active');
+    else if (allDone) dot.classList.add('done');
+    dot.setAttribute('data-step', i);
+    dot.addEventListener('click', function() { goToStep(parseInt(this.getAttribute('data-step'))); });
+    dotsContainer.appendChild(dot);
+  }
+
+  // Build questions using DOM methods
+  var content = document.getElementById('assessment-content');
+  content.textContent = '';
+
+  // Dimension header
+  var header = document.createElement('div');
+  header.className = 'dim-header';
+  var iconDiv = document.createElement('div');
+  iconDiv.className = 'dim-icon';
+  iconDiv.textContent = dim.icon;
+  var textDiv = document.createElement('div');
+  textDiv.className = 'dim-header-text';
+  var h2 = document.createElement('h2');
+  h2.textContent = dim.name;
+  var pDesc = document.createElement('p');
+  pDesc.textContent = dim.desc;
+  textDiv.appendChild(h2);
+  textDiv.appendChild(pDesc);
+  header.appendChild(iconDiv);
+  header.appendChild(textDiv);
+  content.appendChild(header);
+
+  // Questions
+  dim.questions.forEach(function(q, qi) {
+    var key = dim.id + '_' + qi;
+    var selected = state.answers[key];
+    var isAnswered = selected !== undefined;
+
+    var card = document.createElement('div');
+    card.className = 'question-card' + (isAnswered ? ' answered' : '');
+
+    var numEl = document.createElement('div');
+    numEl.className = 'question-num';
+    numEl.textContent = 'Kysymys ' + (qi + 1) + ' / 3';
+    card.appendChild(numEl);
+
+    var textEl = document.createElement('div');
+    textEl.className = 'question-text';
+    textEl.textContent = q.text;
+    card.appendChild(textEl);
+
+    var optionsDiv = document.createElement('div');
+    optionsDiv.className = 'options';
+
+    q.options.forEach(function(opt, oi) {
+      var val = oi + 1;
+      var optDiv = document.createElement('div');
+      optDiv.className = 'option' + (selected === val ? ' selected' : '');
+      optDiv.setAttribute('data-key', key);
+      optDiv.setAttribute('data-val', val);
+      optDiv.addEventListener('click', function() {
+        selectAnswer(this.getAttribute('data-key'), parseInt(this.getAttribute('data-val')), this);
+      });
+
+      var radio = document.createElement('div');
+      radio.className = 'option-radio';
+      var levelEl = document.createElement('div');
+      levelEl.className = 'option-level';
+      levelEl.textContent = val;
+      var textOpt = document.createElement('div');
+      textOpt.className = 'option-text';
+      textOpt.textContent = opt;
+
+      optDiv.appendChild(radio);
+      optDiv.appendChild(levelEl);
+      optDiv.appendChild(textOpt);
+      optionsDiv.appendChild(optDiv);
+    });
+
+    card.appendChild(optionsDiv);
+    content.appendChild(card);
+  });
+
+  // Nav buttons
+  document.getElementById('btn-prev').disabled = state.currentStep === 0;
+  var isLast = state.currentStep === totalSteps - 1;
+  var btnNext = document.getElementById('btn-next');
+  btnNext.textContent = '';
+  btnNext.appendChild(document.createTextNode(isLast ? 'N\u00e4yt\u00e4 tulokset ' : 'Seuraava '));
+  var arrow = document.createElement('span');
+  arrow.className = 'arrow';
+  arrow.textContent = '\u2192';
+  btnNext.appendChild(arrow);
+}
+
+function selectAnswer(key, val, el) {
+  state.answers[key] = val;
+  saveState();
+
+  var card = el.closest('.question-card');
+  card.classList.add('answered');
+  var opts = card.querySelectorAll('.option');
+  for (var i = 0; i < opts.length; i++) opts[i].classList.remove('selected');
+  el.classList.add('selected');
+
+  var totalAnswered = Object.keys(state.answers).length;
+  var pct = Math.round((totalAnswered / 18) * 100);
+  document.getElementById('progress-pct').textContent = pct + '% valmis';
+  document.getElementById('progress-fill').style.width = pct + '%';
+
+  // Update step dots
+  var dim = DIMENSIONS[state.currentStep];
+  var allDone = true;
+  for (var qi = 0; qi < dim.questions.length; qi++) {
+    if (state.answers[dim.id + '_' + qi] === undefined) { allDone = false; break; }
+  }
+  if (allDone) {
+    var dots = document.querySelectorAll('.step-dot');
+    dots[state.currentStep].classList.add('done');
+  }
+}
+
+function goToStep(i) {
+  state.currentStep = i;
+  renderStep();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function nextStep() {
+  if (state.currentStep < DIMENSIONS.length - 1) {
+    state.currentStep++;
+    renderStep();
+    window.scrollTo({top:0,behavior:'smooth'});
+  } else {
+    showScreen('screen-lead');
+  }
+}
+
+function prevStep() {
+  if (state.currentStep > 0) {
+    state.currentStep--;
+    renderStep();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+}
+
+// ===== LEAD CAPTURE =====
+function submitLead(e) {
+  e.preventDefault();
+  var lead = {
+    name: document.getElementById('lead-name').value,
+    email: document.getElementById('lead-email').value,
+    company: document.getElementById('lead-company').value,
+    role: document.getElementById('lead-role').value,
+    timestamp: new Date().toISOString()
+  };
+  console.log('Lead captured:', lead);
+  try { localStorage.setItem('revops-lead', JSON.stringify(lead)); } catch(e) {}
+  showResults();
+}
+
+// ===== RESULTS =====
+function getLevel(score) {
+  for (var i = 0; i < LEVELS.length; i++) {
+    if (score >= LEVELS[i].min && score <= LEVELS[i].max) return LEVELS[i];
+  }
+  return LEVELS[0];
+}
+
+function calculateScores() {
+  var scores = {};
+  DIMENSIONS.forEach(function(dim) {
+    var sum = 0, count = 0;
+    dim.questions.forEach(function(_, qi) {
+      var val = state.answers[dim.id + '_' + qi];
+      if (val !== undefined) { sum += val; count++; }
+    });
+    scores[dim.id] = count > 0 ? Math.round((sum / count) * 10) / 10 : 1;
+  });
+  var vals = [];
+  for (var k in scores) vals.push(scores[k]);
+  var overall = Math.round((vals.reduce(function(a,b){return a+b},0) / DIMENSIONS.length) * 10) / 10;
+  return { dimensions: scores, overall: overall };
+}
+
+function showResults() {
+  showScreen('screen-results');
+  var result = calculateScores();
+  var dimensions = result.dimensions;
+  var overall = result.overall;
+  var level = getLevel(overall);
+
+  var container = document.getElementById('results-content');
+  container.textContent = '';
+
+  // Overall section
+  var r = 68, circ = 2 * Math.PI * r;
+  var fillPct = overall / 5;
+  var offset = circ * (1 - fillPct);
+
+  var overallSection = document.createElement('div');
+  overallSection.className = 'overall-section';
+
+  var label = document.createElement('div');
+  label.className = 'overall-label';
+  label.textContent = 'Kokonaistulos';
+  overallSection.appendChild(label);
+
+  var ringDiv = document.createElement('div');
+  ringDiv.className = 'overall-score-ring';
+
+  var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('viewBox', '0 0 160 160');
+  var track = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  track.setAttribute('class', 'track');
+  track.setAttribute('cx', '80');
+  track.setAttribute('cy', '80');
+  track.setAttribute('r', String(r));
+  svg.appendChild(track);
+
+  var fill = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  fill.setAttribute('class', 'fill-circle');
+  fill.setAttribute('cx', '80');
+  fill.setAttribute('cy', '80');
+  fill.setAttribute('r', String(r));
+  fill.setAttribute('stroke', level.color);
+  fill.setAttribute('stroke-dasharray', String(circ));
+  fill.setAttribute('stroke-dashoffset', String(circ));
+  svg.appendChild(fill);
+  ringDiv.appendChild(svg);
+
+  var numDiv = document.createElement('div');
+  numDiv.className = 'overall-num';
+  var scoreEl = document.createElement('div');
+  scoreEl.className = 'score';
+  scoreEl.textContent = overall;
+  var outOf = document.createElement('div');
+  outOf.className = 'out-of';
+  outOf.textContent = '/ 5.0';
+  numDiv.appendChild(scoreEl);
+  numDiv.appendChild(outOf);
+  ringDiv.appendChild(numDiv);
+  overallSection.appendChild(ringDiv);
+
+  var lvlEl = document.createElement('div');
+  lvlEl.className = 'overall-level';
+  lvlEl.style.color = level.color;
+  lvlEl.textContent = level.name;
+  overallSection.appendChild(lvlEl);
+
+  var descEl = document.createElement('p');
+  descEl.className = 'overall-desc';
+  descEl.textContent = level.desc;
+  overallSection.appendChild(descEl);
+
+  container.appendChild(overallSection);
+
+  // Animate ring
+  setTimeout(function() { fill.setAttribute('stroke-dashoffset', String(offset)); }, 100);
+
+  // Radar section
+  var radarSection = document.createElement('div');
+  radarSection.className = 'radar-section';
+  var radarTitle = document.createElement('div');
+  radarTitle.className = 'radar-title';
+  radarTitle.textContent = 'Maturiteettiprofiili';
+  radarSection.appendChild(radarTitle);
+
+  var radarSvg = renderRadarSVG(dimensions);
+  radarSection.appendChild(radarSvg);
+  container.appendChild(radarSection);
+
+  // Dimension cards
+  var dimTitle = document.createElement('div');
+  dimTitle.className = 'dim-results-title';
+  dimTitle.textContent = 'Osa-aluekohtaiset tulokset';
+  container.appendChild(dimTitle);
+
+  var grid = document.createElement('div');
+  grid.className = 'dim-grid';
+
+  DIMENSIONS.forEach(function(dim) {
+    var score = dimensions[dim.id];
+    var lvl = getLevel(score);
+    var recKey = Math.min(5, Math.max(1, Math.round(score)));
+    var rec = dim.recommendations[recKey];
+
+    var card = document.createElement('div');
+    card.className = 'dim-card';
+
+    var accent = document.createElement('div');
+    accent.className = 'dim-card-accent';
+    accent.style.background = lvl.color;
+    card.appendChild(accent);
+
+    var head = document.createElement('div');
+    head.className = 'dim-card-head';
+
+    var leftDiv = document.createElement('div');
+    var nameEl = document.createElement('div');
+    nameEl.className = 'dim-card-name';
+    nameEl.textContent = dim.name;
+    var levelEl2 = document.createElement('div');
+    levelEl2.className = 'dim-card-level';
+    levelEl2.style.color = lvl.color;
+    levelEl2.textContent = lvl.name;
+    leftDiv.appendChild(nameEl);
+    leftDiv.appendChild(levelEl2);
+
+    var scoreDiv = document.createElement('div');
+    scoreDiv.className = 'dim-card-score';
+    scoreDiv.style.color = lvl.color;
+    scoreDiv.textContent = score;
+
+    head.appendChild(leftDiv);
+    head.appendChild(scoreDiv);
+    card.appendChild(head);
+
+    var bar = document.createElement('div');
+    bar.className = 'dim-card-bar';
+    var barFill = document.createElement('div');
+    barFill.className = 'dim-card-bar-fill';
+    barFill.style.background = lvl.color;
+    barFill.style.width = '0%';
+    barFill.setAttribute('data-target', String((score/5)*100));
+    bar.appendChild(barFill);
+    card.appendChild(bar);
+
+    var recDiv = document.createElement('div');
+    recDiv.className = 'dim-card-rec';
+    var strong = document.createElement('strong');
+    strong.textContent = 'Seuraava askel: ';
+    recDiv.appendChild(strong);
+    recDiv.appendChild(document.createTextNode(rec));
+    card.appendChild(recDiv);
+
+    grid.appendChild(card);
+  });
+
+  container.appendChild(grid);
+
+  // CTA
+  var cta = document.createElement('div');
+  cta.className = 'results-cta';
+  var ctaH3 = document.createElement('h3');
+  ctaH3.textContent = 'Haluatko kehitt\u00e4\u00e4 RevOps-toimintaasi?';
+  cta.appendChild(ctaH3);
+  var ctaP = document.createElement('p');
+  ctaP.textContent = 'Varaa maksuton konsultaatio Aava & Bang AI:n asiantuntijan kanssa. Autamme sinua siirtym\u00e4\u00e4n seuraavalle maturiteettitasolle.';
+  cta.appendChild(ctaP);
+  var ctaBtn = document.createElement('a');
+  ctaBtn.href = 'mailto:hello@aavabang.ai';
+  ctaBtn.className = 'btn-primary';
+  ctaBtn.textContent = 'Varaa konsultaatio';
+  cta.appendChild(ctaBtn);
+  container.appendChild(cta);
+
+  // Actions
+  var actions = document.createElement('div');
+  actions.className = 'results-actions';
+  var retakeBtn = document.createElement('button');
+  retakeBtn.className = 'btn-secondary';
+  retakeBtn.textContent = 'Tee kartoitus uudelleen';
+  retakeBtn.addEventListener('click', retake);
+  actions.appendChild(retakeBtn);
+  container.appendChild(actions);
+
+  // Animate bars
+  setTimeout(function() {
+    var fills = document.querySelectorAll('.dim-card-bar-fill');
+    for (var i = 0; i < fills.length; i++) {
+      fills[i].style.width = fills[i].getAttribute('data-target') + '%';
+    }
+  }, 200);
+}
+
+function retake() {
+  state = { currentStep: 0, answers: {} };
+  try { localStorage.removeItem('revops-assessment'); } catch(e) {}
+  showScreen('screen-landing');
+}
+
+// ===== RADAR CHART (pure SVG with DOM methods) =====
+function renderRadarSVG(scores) {
+  var cx = 210, cy = 210, maxR = 160;
+  var n = DIMENSIONS.length;
+  var angleStep = (2 * Math.PI) / n;
+  var startAngle = -Math.PI / 2;
+
+  function polarToXY(angle, radius) {
+    return { x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle) };
+  }
+
+  var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('class', 'radar-svg');
+  svg.setAttribute('viewBox', '0 0 420 420');
+
+  // Glow filter
+  var defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+  var filter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+  filter.setAttribute('id', 'glow');
+  var blur = document.createElementNS('http://www.w3.org/2000/svg', 'feGaussianBlur');
+  blur.setAttribute('stdDeviation', '3');
+  blur.setAttribute('result', 'blur');
+  filter.appendChild(blur);
+  var merge = document.createElementNS('http://www.w3.org/2000/svg', 'feMerge');
+  var mn1 = document.createElementNS('http://www.w3.org/2000/svg', 'feMergeNode');
+  mn1.setAttribute('in', 'blur');
+  merge.appendChild(mn1);
+  var mn2 = document.createElementNS('http://www.w3.org/2000/svg', 'feMergeNode');
+  mn2.setAttribute('in', 'SourceGraphic');
+  merge.appendChild(mn2);
+  filter.appendChild(merge);
+  defs.appendChild(filter);
+  svg.appendChild(defs);
+
+  // Grid levels
+  for (var lvl = 1; lvl <= 5; lvl++) {
+    var gridR = (lvl / 5) * maxR;
+    var pts = '';
+    for (var i = 0; i < n; i++) {
+      var angle = startAngle + i * angleStep;
+      var p = polarToXY(angle, gridR);
+      pts += p.x + ',' + p.y + ' ';
+    }
+    var gridPoly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    gridPoly.setAttribute('points', pts.trim());
+    gridPoly.setAttribute('fill', 'none');
+    gridPoly.setAttribute('stroke', lvl === 5 ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)');
+    gridPoly.setAttribute('stroke-width', '1');
+    svg.appendChild(gridPoly);
+  }
+
+  // Axis lines
+  for (var i = 0; i < n; i++) {
+    var angle = startAngle + i * angleStep;
+    var ep = polarToXY(angle, maxR);
+    var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', String(cx));
+    line.setAttribute('y1', String(cy));
+    line.setAttribute('x2', String(ep.x));
+    line.setAttribute('y2', String(ep.y));
+    line.setAttribute('stroke', 'rgba(255,255,255,0.06)');
+    line.setAttribute('stroke-width', '1');
+    svg.appendChild(line);
+  }
+
+  // Data polygon
+  var dataPts = '';
+  for (var i = 0; i < n; i++) {
+    var angle = startAngle + i * angleStep;
+    var val = scores[DIMENSIONS[i].id] || 1;
+    var dataR = (val / 5) * maxR;
+    var dp = polarToXY(angle, dataR);
+    dataPts += dp.x + ',' + dp.y + ' ';
+  }
+  var dataPoly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+  dataPoly.setAttribute('points', dataPts.trim());
+  dataPoly.setAttribute('fill', 'rgba(37,99,235,0.12)');
+  dataPoly.setAttribute('stroke', 'rgba(59,130,246,0.7)');
+  dataPoly.setAttribute('stroke-width', '2');
+  dataPoly.setAttribute('stroke-linejoin', 'round');
+  svg.appendChild(dataPoly);
+
+  // Data points
+  for (var i = 0; i < n; i++) {
+    var angle = startAngle + i * angleStep;
+    var val = scores[DIMENSIONS[i].id] || 1;
+    var dataR = (val / 5) * maxR;
+    var dp = polarToXY(angle, dataR);
+    var lvl = getLevel(val);
+    var circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', String(dp.x));
+    circle.setAttribute('cy', String(dp.y));
+    circle.setAttribute('r', '5');
+    circle.setAttribute('fill', lvl.color);
+    circle.setAttribute('stroke', '#fff');
+    circle.setAttribute('stroke-width', '2');
+    circle.setAttribute('filter', 'url(#glow)');
+    svg.appendChild(circle);
+  }
+
+  // Labels
+  for (var i = 0; i < n; i++) {
+    var angle = startAngle + i * angleStep;
+    var lp = polarToXY(angle, maxR + 28);
+    var val = scores[DIMENSIONS[i].id] || 1;
+    var anchor = Math.abs(lp.x - cx) < 5 ? 'middle' : lp.x > cx ? 'start' : 'end';
+    var dy = '0.35em';
+    if (Math.abs(lp.y - cy) < 20) dy = lp.y < cy ? '-0.5em' : '1em';
+
+    var text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', String(lp.x));
+    text.setAttribute('y', String(lp.y));
+    text.setAttribute('text-anchor', anchor);
+    text.setAttribute('dy', dy);
+    text.setAttribute('font-family', 'Outfit, system-ui, sans-serif');
+    text.setAttribute('font-size', '12');
+    text.setAttribute('font-weight', '600');
+    text.setAttribute('fill', 'rgba(255,255,255,0.6)');
+    text.textContent = DIMENSIONS[i].name;
+    svg.appendChild(text);
+
+    // Score value below label
+    var sp = polarToXY(angle, maxR + 44);
+    var scoreText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    scoreText.setAttribute('x', String(sp.x));
+    scoreText.setAttribute('y', String(sp.y));
+    scoreText.setAttribute('text-anchor', anchor);
+    scoreText.setAttribute('dy', dy);
+    scoreText.setAttribute('font-family', 'Outfit, system-ui, sans-serif');
+    scoreText.setAttribute('font-size', '11');
+    scoreText.setAttribute('font-weight', '700');
+    scoreText.setAttribute('fill', getLevel(val).color);
+    scoreText.textContent = val;
+    svg.appendChild(scoreText);
+  }
+
+  return svg;
+}
+</script>
+</body>
+</html>
