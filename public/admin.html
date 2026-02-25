@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin | RevOps Maturiteettikartoitus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue-500:#3B82F6;--blue-600:#2563EB;--blue-700:#1D4ED8;
+  --gray-50:#F9FAFB;--gray-100:#F3F4F6;--gray-200:#E5E7EB;--gray-300:#D1D5DB;--gray-400:#9CA3AF;
+  --gray-500:#6B7280;--gray-600:#4B5563;--gray-700:#374151;--gray-800:#1F2937;--gray-900:#111827;--gray-950:#030712;
+  --red:#EF4444;--orange:#F97316;--yellow:#EAB308;--green:#22C55E;
+  --radius:12px;
+  --font-display:'Outfit',system-ui,sans-serif;
+  --font-body:'DM Sans',system-ui,sans-serif;
+}
+html{-webkit-font-smoothing:antialiased}
+body{font-family:var(--font-body);color:var(--gray-100);background:var(--gray-950);min-height:100vh}
+
+/* Login */
+.login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+.login-card{background:var(--gray-900);border:1px solid rgba(255,255,255,.06);border-radius:var(--radius);padding:40px;max-width:400px;width:100%;text-align:center}
+.login-card h1{font-family:var(--font-display);font-size:24px;font-weight:700;margin-bottom:8px}
+.login-card p{color:var(--gray-400);font-size:14px;margin-bottom:24px}
+.login-input{width:100%;padding:12px 16px;font-size:15px;font-family:var(--font-body);background:var(--gray-800);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;outline:none;margin-bottom:16px}
+.login-input:focus{border-color:var(--blue-500)}
+.login-btn{width:100%;padding:12px;font-family:var(--font-display);font-weight:600;font-size:15px;background:var(--blue-600);color:#fff;border:none;border-radius:8px;cursor:pointer;transition:background .2s}
+.login-btn:hover{background:var(--blue-700)}
+.login-error{color:var(--red);font-size:13px;margin-top:12px;display:none}
+
+/* Dashboard */
+.dashboard{display:none}
+.topbar{padding:16px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.06)}
+.topbar h1{font-family:var(--font-display);font-size:20px;font-weight:700}
+.topbar-actions{display:flex;gap:12px;align-items:center}
+.btn-sm{font-family:var(--font-display);font-weight:600;font-size:13px;padding:8px 16px;border-radius:8px;cursor:pointer;border:1px solid rgba(255,255,255,.1);background:var(--gray-800);color:var(--gray-300);transition:all .2s;text-decoration:none}
+.btn-sm:hover{background:var(--gray-700);color:#fff}
+.btn-sm.primary{background:var(--blue-600);border-color:var(--blue-600);color:#fff}
+.btn-sm.primary:hover{background:var(--blue-700)}
+
+.main{max-width:1200px;margin:0 auto;padding:24px}
+
+/* Stats cards */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:32px}
+.stat-card{background:var(--gray-900);border:1px solid rgba(255,255,255,.06);border-radius:var(--radius);padding:20px}
+.stat-label{font-size:13px;color:var(--gray-500);font-family:var(--font-display);font-weight:500;margin-bottom:4px}
+.stat-value{font-family:var(--font-display);font-size:28px;font-weight:700;color:#fff}
+.stat-sub{font-size:12px;color:var(--gray-500);margin-top:4px}
+
+/* Charts */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:32px}
+.chart-card{background:var(--gray-900);border:1px solid rgba(255,255,255,.06);border-radius:var(--radius);padding:20px}
+.chart-card h3{font-family:var(--font-display);font-weight:600;font-size:15px;color:var(--gray-300);margin-bottom:16px}
+.chart-wrap{position:relative;height:260px}
+
+/* Table */
+.table-card{background:var(--gray-900);border:1px solid rgba(255,255,255,.06);border-radius:var(--radius);padding:20px;margin-bottom:32px}
+.table-card h3{font-family:var(--font-display);font-weight:600;font-size:15px;color:var(--gray-300);margin-bottom:16px}
+table{width:100%;border-collapse:collapse}
+th{font-family:var(--font-display);font-size:12px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:1px;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.06);text-align:left}
+td{font-size:13px;color:var(--gray-300);padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.03)}
+tr:hover td{background:rgba(255,255,255,.02)}
+.level-badge{display:inline-block;padding:2px 8px;border-radius:100px;font-size:11px;font-weight:600;font-family:var(--font-display)}
+.level-1{background:rgba(239,68,68,.15);color:#EF4444}
+.level-2{background:rgba(249,115,22,.15);color:#F97316}
+.level-3{background:rgba(234,179,8,.15);color:#EAB308}
+.level-4{background:rgba(34,197,94,.15);color:#22C55E}
+.level-5{background:rgba(59,130,246,.15);color:#3B82F6}
+
+/* Pagination */
+.pagination{display:flex;justify-content:center;gap:8px;margin-top:16px}
+.page-btn{padding:6px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.1);background:var(--gray-800);color:var(--gray-400);cursor:pointer;font-size:13px;font-family:var(--font-display)}
+.page-btn:hover{background:var(--gray-700);color:#fff}
+.page-btn.active{background:var(--blue-600);border-color:var(--blue-600);color:#fff}
+
+/* Events */
+.events-list{display:flex;flex-wrap:wrap;gap:8px}
+.event-badge{padding:6px 12px;border-radius:8px;font-size:12px;font-weight:500;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);color:var(--gray-300)}
+.event-badge strong{color:#fff}
+
+@media(max-width:768px){
+  .charts-grid{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .topbar{flex-direction:column;gap:12px}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen" class="login-screen">
+  <div class="login-card">
+    <h1>Admin Dashboard</h1>
+    <p>RevOps Maturiteettikartoitus</p>
+    <form id="login-form">
+      <input class="login-input" type="password" id="login-password" placeholder="Salasana" autocomplete="current-password">
+      <button class="login-btn" type="submit">Kirjaudu</button>
+    </form>
+    <div class="login-error" id="login-error">Väärä salasana</div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="dashboard">
+  <div class="topbar">
+    <h1>RevOps Dashboard</h1>
+    <div class="topbar-actions">
+      <a href="/" class="btn-sm">Etusivu</a>
+      <a id="btn-export" class="btn-sm primary" href="#">CSV Export</a>
+      <button id="btn-logout" class="btn-sm">Kirjaudu ulos</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- Stats -->
+    <div class="stats-grid" id="stats-grid"></div>
+
+    <!-- Charts -->
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3>Maturiteettitasojen jakautuminen</h3>
+        <div class="chart-wrap"><canvas id="chart-distribution"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>Osa-alueiden keskiarvot</h3>
+        <div class="chart-wrap"><canvas id="chart-dimensions"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>Viikoittaiset vastaukset</h3>
+        <div class="chart-wrap"><canvas id="chart-weekly"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>Tapahtumat</h3>
+        <div class="chart-wrap" id="events-wrap"></div>
+      </div>
+    </div>
+
+    <!-- Recent assessments -->
+    <div class="table-card">
+      <h3>Viimeisimmät vastaukset</h3>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Päivämäärä</th>
+              <th>Nimi</th>
+              <th>Yritys</th>
+              <th>Sähköposti</th>
+              <th>Tulos</th>
+              <th>Taso</th>
+            </tr>
+          </thead>
+          <tbody id="assessments-body"></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+var token = sessionStorage.getItem('admin-token');
+var currentPage = 1;
+
+// Auto-login if token exists
+if (token) {
+  showDashboard();
+}
+
+// Login
+document.getElementById('login-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  var pw = document.getElementById('login-password').value;
+  fetch('/api/admin/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password: pw }),
+  })
+  .then(function(res) {
+    if (!res.ok) throw new Error('auth');
+    return res.json();
+  })
+  .then(function(data) {
+    token = data.token;
+    sessionStorage.setItem('admin-token', token);
+    showDashboard();
+  })
+  .catch(function() {
+    document.getElementById('login-error').style.display = 'block';
+  });
+});
+
+// Logout
+document.getElementById('btn-logout').addEventListener('click', function() {
+  token = null;
+  sessionStorage.removeItem('admin-token');
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+});
+
+// Export
+document.getElementById('btn-export').addEventListener('click', function(e) {
+  e.preventDefault();
+  window.open('/api/admin/export?token=' + encodeURIComponent(token));
+});
+
+function authHeaders() {
+  return { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' };
+}
+
+function showDashboard() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  loadStats();
+  loadAssessments(1);
+}
+
+function loadStats() {
+  fetch('/api/admin/stats', { headers: authHeaders() })
+    .then(function(res) {
+      if (res.status === 401) {
+        token = null;
+        sessionStorage.removeItem('admin-token');
+        location.reload();
+        return;
+      }
+      return res.json();
+    })
+    .then(function(data) {
+      if (!data) return;
+      renderStats(data);
+      renderCharts(data);
+    })
+    .catch(function(err) { console.error('Stats error:', err); });
+}
+
+function renderStats(data) {
+  var grid = document.getElementById('stats-grid');
+  grid.textContent = '';
+  var cards = [
+    { label: 'Vastauksia yhteensä', value: data.total || 0 },
+    { label: 'Keskiarvo', value: (data.avgScores && data.avgScores.overall) || '-', sub: '/ 5.0' },
+    { label: 'Tällä viikolla', value: (data.weekly && data.weekly.length > 0) ? data.weekly[0].count : 0 },
+    { label: 'Tapahtumia', value: data.events ? data.events.reduce(function(s, e) { return s + e.count; }, 0) : 0 },
+  ];
+  cards.forEach(function(c) {
+    var card = document.createElement('div');
+    card.className = 'stat-card';
+    var label = document.createElement('div');
+    label.className = 'stat-label';
+    label.textContent = c.label;
+    card.appendChild(label);
+    var val = document.createElement('div');
+    val.className = 'stat-value';
+    val.textContent = c.value;
+    card.appendChild(val);
+    if (c.sub) {
+      var sub = document.createElement('div');
+      sub.className = 'stat-sub';
+      sub.textContent = c.sub;
+      card.appendChild(sub);
+    }
+    grid.appendChild(card);
+  });
+}
+
+var chartInstances = {};
+
+function renderCharts(data) {
+  Chart.defaults.color = '#9CA3AF';
+  Chart.defaults.borderColor = 'rgba(255,255,255,0.04)';
+  Chart.defaults.font.family = "'Outfit', system-ui, sans-serif";
+
+  // Distribution chart
+  if (data.distribution) {
+    if (chartInstances.dist) chartInstances.dist.destroy();
+    chartInstances.dist = new Chart(document.getElementById('chart-distribution'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Ad Hoc', 'Reagoiva', 'Määritelty', 'Hallittu', 'Optimoitu'],
+        datasets: [{
+          data: [data.distribution.level1||0, data.distribution.level2||0, data.distribution.level3||0, data.distribution.level4||0, data.distribution.level5||0],
+          backgroundColor: ['#EF4444', '#F97316', '#EAB308', '#22C55E', '#3B82F6'],
+          borderWidth: 0,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true } } }
+      }
+    });
+  }
+
+  // Dimensions radar
+  if (data.avgScores) {
+    if (chartInstances.dims) chartInstances.dims.destroy();
+    chartInstances.dims = new Chart(document.getElementById('chart-dimensions'), {
+      type: 'radar',
+      data: {
+        labels: ['Strategia', 'Prosessit', 'Data', 'Teknologia', 'Ihmiset', 'Asiakaspolku'],
+        datasets: [{
+          label: 'Keskiarvo',
+          data: [data.avgScores.strategy, data.avgScores.process, data.avgScores.data, data.avgScores.tech, data.avgScores.people, data.avgScores.journey],
+          backgroundColor: 'rgba(59,130,246,0.15)',
+          borderColor: 'rgba(59,130,246,0.7)',
+          borderWidth: 2,
+          pointBackgroundColor: '#3B82F6',
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        scales: { r: { min: 0, max: 5, ticks: { stepSize: 1, color: '#6B7280' }, grid: { color: 'rgba(255,255,255,0.06)' } } },
+        plugins: { legend: { display: false } }
+      }
+    });
+  }
+
+  // Weekly chart
+  if (data.weekly && data.weekly.length > 0) {
+    var weeks = data.weekly.slice().reverse();
+    if (chartInstances.weekly) chartInstances.weekly.destroy();
+    chartInstances.weekly = new Chart(document.getElementById('chart-weekly'), {
+      type: 'bar',
+      data: {
+        labels: weeks.map(function(w) { return w.week; }),
+        datasets: [{
+          label: 'Vastauksia',
+          data: weeks.map(function(w) { return w.count; }),
+          backgroundColor: 'rgba(59,130,246,0.5)',
+          borderRadius: 4,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+      }
+    });
+  }
+
+  // Events
+  var eventsWrap = document.getElementById('events-wrap');
+  eventsWrap.textContent = '';
+  if (data.events && data.events.length > 0) {
+    var list = document.createElement('div');
+    list.className = 'events-list';
+    data.events.forEach(function(ev) {
+      var badge = document.createElement('div');
+      badge.className = 'event-badge';
+      var strong = document.createElement('strong');
+      strong.textContent = ev.count;
+      badge.appendChild(strong);
+      badge.appendChild(document.createTextNode(' ' + ev.event_type));
+      list.appendChild(badge);
+    });
+    eventsWrap.appendChild(list);
+  } else {
+    eventsWrap.textContent = 'Ei tapahtumia vielä';
+    eventsWrap.style.color = 'var(--gray-500)';
+  }
+}
+
+function loadAssessments(page) {
+  currentPage = page;
+  fetch('/api/admin/assessments?page=' + page + '&limit=20', { headers: authHeaders() })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      renderAssessments(data);
+    })
+    .catch(function(err) { console.error('Assessments error:', err); });
+}
+
+function renderAssessments(data) {
+  var tbody = document.getElementById('assessments-body');
+  tbody.textContent = '';
+
+  var LEVELS = [
+    { min: 1.0, max: 1.4, cls: 'level-1' },
+    { min: 1.5, max: 2.4, cls: 'level-2' },
+    { min: 2.5, max: 3.4, cls: 'level-3' },
+    { min: 3.5, max: 4.4, cls: 'level-4' },
+    { min: 4.5, max: 5.0, cls: 'level-5' },
+  ];
+
+  function getLevelClass(score) {
+    for (var i = 0; i < LEVELS.length; i++) {
+      if (score >= LEVELS[i].min && score <= LEVELS[i].max) return LEVELS[i].cls;
+    }
+    return 'level-1';
+  }
+
+  if (!data.items || data.items.length === 0) {
+    var tr = document.createElement('tr');
+    var td = document.createElement('td');
+    td.setAttribute('colspan', '6');
+    td.textContent = 'Ei vastauksia vielä';
+    td.style.textAlign = 'center';
+    td.style.color = 'var(--gray-500)';
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+    return;
+  }
+
+  data.items.forEach(function(item) {
+    var tr = document.createElement('tr');
+    var fields = [
+      item.created_at ? item.created_at.substring(0, 16).replace('T', ' ') : '-',
+      item.lead_name || '-',
+      item.lead_company || '-',
+      item.lead_email || '-',
+    ];
+    fields.forEach(function(f) {
+      var td = document.createElement('td');
+      td.textContent = f;
+      tr.appendChild(td);
+    });
+    // Score
+    var tdScore = document.createElement('td');
+    tdScore.style.fontWeight = '600';
+    tdScore.textContent = item.score_overall;
+    tr.appendChild(tdScore);
+    // Level badge
+    var tdLevel = document.createElement('td');
+    var badge = document.createElement('span');
+    badge.className = 'level-badge ' + getLevelClass(item.score_overall);
+    badge.textContent = item.maturity_level;
+    tdLevel.appendChild(badge);
+    tr.appendChild(tdLevel);
+    tbody.appendChild(tr);
+  });
+
+  // Pagination
+  var pag = document.getElementById('pagination');
+  pag.textContent = '';
+  if (data.pages > 1) {
+    for (var i = 1; i <= data.pages; i++) {
+      var btn = document.createElement('button');
+      btn.className = 'page-btn' + (i === data.page ? ' active' : '');
+      btn.textContent = i;
+      btn.setAttribute('data-page', i);
+      btn.addEventListener('click', function() { loadAssessments(parseInt(this.getAttribute('data-page'))); });
+      pag.appendChild(btn);
+    }
+  }
+}
+</script>
+</body>
+</html>

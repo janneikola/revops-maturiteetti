@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RevOps Maturiteettitulokset | Aava & Bang</title>
+<meta property="og:title" content="{{OG_TITLE}}">
+<meta property="og:description" content="{{OG_DESC}}">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue-500:#3B82F6;--blue-600:#2563EB;--blue-700:#1D4ED8;--blue-800:#1E40AF;
+  --gray-100:#F3F4F6;--gray-300:#D1D5DB;--gray-400:#9CA3AF;--gray-500:#6B7280;
+  --gray-600:#4B5563;--gray-700:#374151;--gray-800:#1F2937;--gray-900:#111827;--gray-950:#030712;
+  --red:#EF4444;--orange:#F97316;--yellow:#EAB308;--green:#22C55E;
+  --radius:12px;--radius-lg:20px;
+  --font-display:'Outfit',system-ui,sans-serif;--font-body:'DM Sans',system-ui,sans-serif;
+}
+html{-webkit-font-smoothing:antialiased}
+body{font-family:var(--font-body);color:var(--gray-100);background:var(--gray-950);min-height:100vh;overflow-x:hidden;
+  background-image:radial-gradient(ellipse 80% 60% at 50% -20%,rgba(37,99,235,.12) 0%,transparent 70%)}
+body::before{content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:128px 128px}
+.topbar{padding:20px 0;position:relative;z-index:10}
+.topbar .container{max-width:960px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between}
+.logo{display:inline-flex;align-items:center;text-decoration:none}
+.logo-img{height:48px;width:auto;display:block}
+.topbar-badge{font-family:var(--font-display);font-size:11px;font-weight:600;color:var(--blue-500);letter-spacing:1.5px;text-transform:uppercase;background:rgba(37,99,235,.1);border:1px solid rgba(37,99,235,.2);padding:5px 12px;border-radius:100px}
+.container{max-width:960px;margin:0 auto;padding:0 24px}
+.loading{text-align:center;padding:120px 24px;color:var(--gray-400)}
+.loading-spinner{width:40px;height:40px;border:3px solid var(--gray-800);border-top-color:var(--blue-500);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 20px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.error-msg{text-align:center;padding:120px 24px;color:var(--gray-400)}
+.error-msg h2{font-family:var(--font-display);color:#fff;margin-bottom:12px}
+.error-msg a{color:var(--blue-500);text-decoration:none}
+.results-wrap{padding:20px 0 80px}
+.overall-section{text-align:center;padding:48px 0 56px;border-bottom:1px solid rgba(255,255,255,.06);margin-bottom:48px}
+.overall-label{font-family:var(--font-display);font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--gray-500);margin-bottom:20px}
+.overall-score-ring{width:160px;height:160px;margin:0 auto 20px;position:relative}
+.overall-score-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.overall-score-ring .track{fill:none;stroke:var(--gray-800);stroke-width:6}
+.overall-score-ring .fill-circle{fill:none;stroke-width:6;stroke-linecap:round}
+.overall-num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.overall-num .score{font-family:var(--font-display);font-weight:800;font-size:48px;letter-spacing:-2px;color:#fff;line-height:1}
+.overall-num .out-of{font-size:14px;color:var(--gray-500);margin-top:2px}
+.overall-level{font-family:var(--font-display);font-weight:700;font-size:22px;letter-spacing:-0.5px;margin-bottom:8px}
+.overall-desc{font-size:15px;color:var(--gray-400);max-width:500px;margin:0 auto;line-height:1.6}
+.benchmark-note{font-size:13px;color:var(--gray-500);margin-top:12px}
+.benchmark-note strong{color:var(--blue-400)}
+.radar-section{display:flex;flex-direction:column;align-items:center;margin-bottom:56px;padding-bottom:56px;border-bottom:1px solid rgba(255,255,255,.06)}
+.radar-title{font-family:var(--font-display);font-weight:700;font-size:18px;color:#fff;letter-spacing:-0.3px;margin-bottom:32px}
+.radar-svg{max-width:420px;width:100%}
+.dim-results-title{font-family:var(--font-display);font-weight:700;font-size:18px;color:#fff;letter-spacing:-0.3px;margin-bottom:24px}
+.dim-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.dim-card{background:linear-gradient(135deg,rgba(255,255,255,.03),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.06);border-radius:var(--radius-lg);padding:24px;position:relative;overflow:hidden}
+.dim-card-accent{position:absolute;top:0;left:0;right:0;height:3px;border-radius:3px 3px 0 0}
+.dim-card-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.dim-card-name{font-family:var(--font-display);font-weight:600;font-size:15px;color:#fff}
+.dim-card-score{font-family:var(--font-display);font-weight:800;font-size:24px;letter-spacing:-1px;line-height:1}
+.dim-card-level{font-family:var(--font-display);font-weight:600;font-size:12px;letter-spacing:.5px;margin-bottom:4px}
+.dim-card-bar{height:4px;background:var(--gray-800);border-radius:100px;margin-bottom:8px;overflow:hidden}
+.dim-card-bar-fill{height:100%;border-radius:100px}
+.dim-card-benchmark{font-size:11px;color:var(--gray-500);margin-bottom:12px}
+.dim-card-benchmark strong{color:var(--blue-400)}
+.dim-card-rec{font-size:13px;line-height:1.6;color:var(--gray-400)}
+.dim-card-rec strong{color:var(--gray-200);font-weight:600}
+.ai-section{margin-top:56px;padding-top:56px;border-top:1px solid rgba(255,255,255,.06)}
+.ai-section-title{font-family:var(--font-display);font-weight:700;font-size:18px;color:#fff;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.ai-badge{font-size:10px;font-weight:700;color:var(--blue-400);background:rgba(37,99,235,.15);padding:3px 8px;border-radius:100px}
+.ai-loading{text-align:center;padding:32px;color:var(--gray-500);font-size:14px}
+.ai-loading .loading-spinner{width:24px;height:24px;margin-bottom:12px}
+.ai-narrative{font-size:15px;line-height:1.7;color:var(--gray-300);margin-bottom:24px;white-space:pre-line}
+.ai-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:24px}
+.ai-card{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:var(--radius);padding:16px}
+.ai-card h4{font-family:var(--font-display);font-weight:600;font-size:14px;color:#fff;margin-bottom:4px}
+.ai-card p{font-size:13px;line-height:1.5;color:var(--gray-400)}
+.ai-recs{list-style:none;display:flex;flex-direction:column;gap:12px}
+.ai-rec{display:flex;gap:12px;align-items:flex-start}
+.ai-rec-num{font-family:var(--font-display);font-weight:800;font-size:18px;color:var(--blue-500);min-width:24px}
+.ai-rec h4{font-family:var(--font-display);font-weight:600;font-size:14px;color:#fff;margin-bottom:2px}
+.ai-rec p{font-size:13px;line-height:1.5;color:var(--gray-400)}
+.plan-phase{margin-bottom:24px}
+.plan-phase-title{font-family:var(--font-display);font-weight:700;font-size:15px;color:#fff;margin-bottom:4px}
+.plan-phase-focus{font-size:13px;color:var(--gray-500);margin-bottom:12px}
+.plan-steps{display:flex;flex-direction:column;gap:8px}
+.plan-step{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:var(--radius);padding:14px;display:flex;gap:12px}
+.plan-step-week{font-family:var(--font-display);font-weight:700;font-size:12px;color:var(--blue-400);min-width:60px;padding-top:2px}
+.plan-step h4{font-family:var(--font-display);font-weight:600;font-size:13px;color:#fff;margin-bottom:2px}
+.plan-step p{font-size:12px;line-height:1.5;color:var(--gray-400)}
+.plan-outcome{background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);border-radius:var(--radius);padding:16px;margin-top:16px;font-size:14px;line-height:1.6;color:var(--gray-300)}
+.plan-outcome strong{color:var(--green)}
+.results-cta{margin-top:56px;padding:48px;text-align:center;background:linear-gradient(135deg,rgba(37,99,235,.1),rgba(37,99,235,.03));border:1px solid rgba(37,99,235,.15);border-radius:var(--radius-lg);position:relative;overflow:hidden}
+.results-cta::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(37,99,235,.12),transparent 60%);pointer-events:none}
+.results-cta h3{font-family:var(--font-display);font-weight:700;font-size:24px;color:#fff;margin-bottom:12px;position:relative}
+.results-cta p{font-size:15px;color:var(--gray-400);line-height:1.6;max-width:420px;margin:0 auto 28px;position:relative}
+.btn-primary{font-family:var(--font-display);font-weight:600;font-size:16px;padding:16px 40px;border:none;border-radius:100px;cursor:pointer;color:#fff;background:linear-gradient(135deg,var(--blue-600),var(--blue-700));box-shadow:0 0 40px rgba(37,99,235,.3);transition:all .3s;text-decoration:none;display:inline-block;position:relative}
+.btn-primary:hover{transform:translateY(-2px)}
+.btn-secondary{font-family:var(--font-display);font-weight:600;font-size:14px;padding:12px 28px;border:1px solid rgba(255,255,255,.1);border-radius:100px;cursor:pointer;color:var(--gray-300);background:transparent;transition:all .3s;text-decoration:none}
+.btn-secondary:hover{border-color:rgba(255,255,255,.2);color:#fff}
+.results-actions{display:flex;justify-content:center;gap:16px;margin-top:24px}
+@media(max-width:768px){.dim-grid,.ai-cards{grid-template-columns:1fr}.results-cta{padding:32px 24px}}
+</style>
+</head>
+<body>
+<div class="topbar"><div class="container">
+  <a class="logo" href="/"><img class="logo-img" src="/logo.png" alt="Aava &amp; Bang"></a>
+  <div class="topbar-badge">RevOps Tulokset</div>
+</div></div>
+<div class="container results-wrap" id="results-content">
+  <div class="loading"><div class="loading-spinner"></div>Ladataan tuloksia...</div>
+</div>
+<script>
+var ASSESSMENT_ID='{{ASSESSMENT_ID}}';
+var DIMENSIONS=[
+  {id:'strategy',name:'Strategia ja johtaminen',recommendations:{1:'Aloita m\u00e4\u00e4rittelem\u00e4ll\u00e4 yhteinen revenue-tavoite.',2:'Dokumentoi yhteiset KPI:t ja nime\u00e4 RevOps-vastuuhenkil\u00f6.',3:'Syvenn\u00e4 johdon sitoutumista RevOpsiin.',4:'Integroi RevOps osaksi liiketoimintastrategiaa.',5:'Yll\u00e4pid\u00e4 etumatkaasi ja optimoi jatkuvasti.'}},
+  {id:'process',name:'Prosessit',recommendations:{1:'Dokumentoi lead-to-revenue -prosessi.',2:'Luo MQL/SQL-kriteerit ja SLA.',3:'Automatisoi lead scoring.',4:'Ota k\u00e4ytt\u00f6\u00f6n ennakoiva analytiikka.',5:'Hy\u00f6dynn\u00e4 teko\u00e4ly\u00e4 prosessien optimoinnissa.'}},
+  {id:'data',name:'Data ja analytiikka',recommendations:{1:'Keskit\u00e4 data yhteen CRM:n.',2:'M\u00e4\u00e4rittele datan omistajuudet.',3:'Ota k\u00e4ytt\u00f6\u00f6n automaattinen validointi.',4:'Investoi ennakoivaan analytiikkaan.',5:'Hy\u00f6dynn\u00e4 analytiikkaa strategisesti.'}},
+  {id:'tech',name:'Teknologia ja ty\u00f6kalut',recommendations:{1:'Ota CRM k\u00e4ytt\u00f6\u00f6n kaikille tiimeille.',2:'Laajenna CRM markkinointiin.',3:'Integroi CRM kaikkiin j\u00e4rjestelmiin.',4:'Investoi iPaaS-ratkaisuun.',5:'Arvioi s\u00e4\u00e4nn\u00f6llisesti uusia ty\u00f6kaluja.'}},
+  {id:'people',name:'Ihmiset ja kulttuuri',recommendations:{1:'Aloita yhteiset palaverit.',2:'Perusta RevOps-rooli.',3:'Kasvata RevOps-tiimi dedikoiduksi.',4:'Kehit\u00e4 RevOps strategiseksi funktioksi.',5:'Toimi RevOps-edell\u00e4k\u00e4vij\u00e4n\u00e4.'}},
+  {id:'journey',name:'Asiakaspolku',recommendations:{1:'Kartoita ostopolku.',2:'Dokumentoi ostopolku.',3:'Optimoi kosketuspisteet.',4:'Rakenna reaaliaikainen n\u00e4kym\u00e4.',5:'Hy\u00f6dynn\u00e4 teko\u00e4ly\u00e4 optimoinnissa.'}}
+];
+var LEVELS=[
+  {min:1.0,max:1.4,name:'Ad Hoc',color:'#EF4444',desc:'RevOps-toimintamalli on alkutekij\u00f6iss\u00e4\u00e4n.'},
+  {min:1.5,max:2.4,name:'Reagoiva',color:'#F97316',desc:'Toiminta on reaktiivista ja j\u00e4rjestelm\u00e4t hajanaisia.'},
+  {min:2.5,max:3.4,name:'M\u00e4\u00e4ritelty',color:'#EAB308',desc:'Prosessit on dokumentoitu ja yhteisty\u00f6 alkanut.'},
+  {min:3.5,max:4.4,name:'Hallittu',color:'#22C55E',desc:'Data ohjaa p\u00e4\u00e4t\u00f6ksi\u00e4, automaatio tehostaa.'},
+  {min:4.5,max:5.0,name:'Optimoitu',color:'#3B82F6',desc:'Teko\u00e4ly ja jatkuva optimointi ohjaavat toimintaa.'}
+];
+function getLevel(s){for(var i=0;i<LEVELS.length;i++)if(s>=LEVELS[i].min&&s<=LEVELS[i].max)return LEVELS[i];return LEVELS[0]}
+
+if(ASSESSMENT_ID&&ASSESSMENT_ID!=='{{ASSESSMENT_ID}}'){
+  fetch('/api/assessments/'+ASSESSMENT_ID).then(function(r){if(!r.ok)throw new Error();return r.json()})
+    .then(function(d){renderResults(d);pollAI()})
+    .catch(function(){document.getElementById('results-content').textContent='';
+      var e=document.createElement('div');e.className='error-msg';
+      var h=document.createElement('h2');h.textContent='Tuloksia ei l\u00f6ytynyt';e.appendChild(h);
+      var p=document.createElement('p');var a=document.createElement('a');a.href='/';a.textContent='Tee kartoitus';p.appendChild(a);e.appendChild(p);
+      document.getElementById('results-content').appendChild(e);});
+}else{
+  var c=document.getElementById('results-content');c.textContent='';
+  var e=document.createElement('div');e.className='error-msg';
+  var h=document.createElement('h2');h.textContent='Ei tunnistetta';e.appendChild(h);
+  var a=document.createElement('a');a.href='/';a.textContent='Tee kartoitus';e.appendChild(a);c.appendChild(e);
+}
+
+function renderResults(data){
+  var scores=data.scores,level=getLevel(scores.overall),bm=data.benchmark,c=document.getElementById('results-content');
+  c.textContent='';
+  // Overall
+  var os=document.createElement('div');os.className='overall-section';
+  var ol=document.createElement('div');ol.className='overall-label';ol.textContent='Kokonaistulos';os.appendChild(ol);
+  var r=68,circ=2*Math.PI*r,offset=circ*(1-scores.overall/5);
+  var ring=document.createElement('div');ring.className='overall-score-ring';
+  var svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 160 160');
+  var tr=document.createElementNS('http://www.w3.org/2000/svg','circle');tr.setAttribute('class','track');tr.setAttribute('cx','80');tr.setAttribute('cy','80');tr.setAttribute('r',String(r));svg.appendChild(tr);
+  var fl=document.createElementNS('http://www.w3.org/2000/svg','circle');fl.setAttribute('class','fill-circle');fl.setAttribute('cx','80');fl.setAttribute('cy','80');fl.setAttribute('r',String(r));
+  fl.setAttribute('stroke',level.color);fl.setAttribute('stroke-dasharray',String(circ));fl.setAttribute('stroke-dashoffset',String(offset));svg.appendChild(fl);
+  ring.appendChild(svg);
+  var nd=document.createElement('div');nd.className='overall-num';
+  var sc=document.createElement('div');sc.className='score';sc.textContent=scores.overall;nd.appendChild(sc);
+  var oo=document.createElement('div');oo.className='out-of';oo.textContent='/ 5.0';nd.appendChild(oo);
+  ring.appendChild(nd);os.appendChild(ring);
+  var lv=document.createElement('div');lv.className='overall-level';lv.style.color=level.color;lv.textContent=level.name;os.appendChild(lv);
+  var ds=document.createElement('p');ds.className='overall-desc';ds.textContent=level.desc;os.appendChild(ds);
+  if(bm&&bm.available&&bm.benchmarks&&bm.benchmarks.overall){
+    var bn=document.createElement('p');bn.className='benchmark-note';
+    bn.textContent='Olet ';var bs=document.createElement('strong');bs.textContent=bm.benchmarks.overall.percentile+'% yrityksi\u00e4 edell\u00e4';
+    bn.appendChild(bs);bn.appendChild(document.createTextNode(' (keskiarvo: '+bm.benchmarks.overall.average+'/5.0, n='+bm.totalResponses+')'));os.appendChild(bn);
+  }
+  c.appendChild(os);
+  // Radar
+  var rs=document.createElement('div');rs.className='radar-section';
+  var rt=document.createElement('div');rt.className='radar-title';rt.textContent='Maturiteettiprofiili';rs.appendChild(rt);
+  rs.appendChild(renderRadarSVG(scores));c.appendChild(rs);
+  // Dim cards
+  var dt=document.createElement('div');dt.className='dim-results-title';dt.textContent='Osa-aluekohtaiset tulokset';c.appendChild(dt);
+  var grid=document.createElement('div');grid.className='dim-grid';
+  DIMENSIONS.forEach(function(dim){
+    var s=scores[dim.id],lvl=getLevel(s),recKey=Math.min(5,Math.max(1,Math.round(s))),rec=dim.recommendations[recKey];
+    var bmDim=(bm&&bm.available&&bm.benchmarks)?bm.benchmarks[dim.id]:null;
+    var card=document.createElement('div');card.className='dim-card';
+    var acc=document.createElement('div');acc.className='dim-card-accent';acc.style.background=lvl.color;card.appendChild(acc);
+    var hd=document.createElement('div');hd.className='dim-card-head';
+    var left=document.createElement('div');var nm=document.createElement('div');nm.className='dim-card-name';nm.textContent=dim.name;left.appendChild(nm);
+    var le=document.createElement('div');le.className='dim-card-level';le.style.color=lvl.color;le.textContent=lvl.name;left.appendChild(le);
+    var scd=document.createElement('div');scd.className='dim-card-score';scd.style.color=lvl.color;scd.textContent=s;
+    hd.appendChild(left);hd.appendChild(scd);card.appendChild(hd);
+    var bar=document.createElement('div');bar.className='dim-card-bar';var bf=document.createElement('div');bf.className='dim-card-bar-fill';bf.style.width=(s/5*100)+'%';bf.style.background=lvl.color;bar.appendChild(bf);card.appendChild(bar);
+    if(bmDim){var bd=document.createElement('div');bd.className='dim-card-benchmark';var bds=document.createElement('strong');bds.textContent=bmDim.percentile+'%';bd.appendChild(bds);bd.appendChild(document.createTextNode(' yrityksi\u00e4 edell\u00e4 (ka. '+bmDim.average+')'));card.appendChild(bd);}
+    var rd=document.createElement('div');rd.className='dim-card-rec';var st=document.createElement('strong');st.textContent='Seuraava askel: ';rd.appendChild(st);rd.appendChild(document.createTextNode(rec));card.appendChild(rd);
+    grid.appendChild(card);
+  });
+  c.appendChild(grid);
+  // AI sections
+  var aiSec=document.createElement('div');aiSec.className='ai-section';aiSec.id='ai-analysis-section';
+  var aiT=document.createElement('div');aiT.className='ai-section-title';aiT.textContent='AI-analyysi ';var aiBadge=document.createElement('span');aiBadge.className='ai-badge';aiBadge.textContent='AI';aiT.appendChild(aiBadge);aiSec.appendChild(aiT);
+  var aiL=document.createElement('div');aiL.className='ai-loading';aiL.id='ai-analysis-loading';var sp=document.createElement('div');sp.className='loading-spinner';aiL.appendChild(sp);aiL.appendChild(document.createTextNode('Analyysi\u00e4 luodaan...'));aiSec.appendChild(aiL);
+  var aiC=document.createElement('div');aiC.id='ai-analysis-content';aiC.style.display='none';aiSec.appendChild(aiC);c.appendChild(aiSec);
+
+  var plSec=document.createElement('div');plSec.className='ai-section';plSec.id='ai-plan-section';
+  var plT=document.createElement('div');plT.className='ai-section-title';plT.textContent='90 p\u00e4iv\u00e4n toimintasuunnitelma ';var plBadge=document.createElement('span');plBadge.className='ai-badge';plBadge.textContent='AI';plT.appendChild(plBadge);plSec.appendChild(plT);
+  var plL=document.createElement('div');plL.className='ai-loading';plL.id='ai-plan-loading';var sp2=document.createElement('div');sp2.className='loading-spinner';plL.appendChild(sp2);plL.appendChild(document.createTextNode('Suunnitelmaa luodaan...'));plSec.appendChild(plL);
+  var plC=document.createElement('div');plC.id='ai-plan-content';plC.style.display='none';plSec.appendChild(plC);c.appendChild(plSec);
+
+  // CTA
+  var cta=document.createElement('div');cta.className='results-cta';
+  var ch=document.createElement('h3');ch.textContent='Haluatko kehitt\u00e4\u00e4 RevOps-toimintaasi?';cta.appendChild(ch);
+  var cp=document.createElement('p');cp.textContent='Varaa maksuton konsultaatio Hanna-Riikka Ilkan kanssa.';cta.appendChild(cp);
+  var ca=document.createElement('a');ca.href='mailto:hanna-riikka.ilkka@bang.fi';ca.className='btn-primary';ca.textContent='Ota yhteytt\u00e4';cta.appendChild(ca);c.appendChild(cta);
+  // Actions
+  var acts=document.createElement('div');acts.className='results-actions';
+  var copyBtn=document.createElement('button');copyBtn.className='btn-secondary';copyBtn.textContent='Kopioi linkki';
+  copyBtn.addEventListener('click',function(){navigator.clipboard.writeText(window.location.href).then(function(){alert('Linkki kopioitu!')})});acts.appendChild(copyBtn);
+  var newBtn=document.createElement('a');newBtn.href='/';newBtn.className='btn-secondary';newBtn.textContent='Tee oma kartoitus';acts.appendChild(newBtn);
+  c.appendChild(acts);
+}
+
+function pollAI(){
+  if(!ASSESSMENT_ID)return;
+  var iv=setInterval(function(){
+    fetch('/api/assessments/'+ASSESSMENT_ID+'/ai').then(function(r){return r.json()}).then(function(d){
+      if(d.status==='ready'){clearInterval(iv);if(d.analysis)renderAI(d.analysis,'ai-analysis');if(d.actionPlan)renderPlan(d.actionPlan);}
+    }).catch(function(){clearInterval(iv)});
+  },4000);
+  setTimeout(function(){clearInterval(iv)},120000);
+}
+
+function renderAI(a,prefix){
+  var l=document.getElementById(prefix+'-loading');if(l)l.style.display='none';
+  var c=document.getElementById(prefix+'-content');if(!c)return;c.style.display='block';c.textContent='';
+  if(a.narrative){var n=document.createElement('div');n.className='ai-narrative';n.textContent=a.narrative;c.appendChild(n);}
+  if(a.strengths&&a.strengths.length){
+    var sh=document.createElement('div');sh.style.cssText='margin-bottom:8px;font-family:var(--font-display);font-weight:600;font-size:14px;color:var(--green)';sh.textContent='Vahvuudet';c.appendChild(sh);
+    var cards=document.createElement('div');cards.className='ai-cards';
+    a.strengths.forEach(function(s){var cd=document.createElement('div');cd.className='ai-card';var h=document.createElement('h4');h.textContent=s.dimension;cd.appendChild(h);var p=document.createElement('p');p.textContent=s.insight;cd.appendChild(p);cards.appendChild(cd)});c.appendChild(cards);
+  }
+  if(a.gaps&&a.gaps.length){
+    var gh=document.createElement('div');gh.style.cssText='margin-bottom:8px;font-family:var(--font-display);font-weight:600;font-size:14px;color:var(--orange)';gh.textContent='Kehityskohteet';c.appendChild(gh);
+    var cards=document.createElement('div');cards.className='ai-cards';
+    a.gaps.forEach(function(g){var cd=document.createElement('div');cd.className='ai-card';var h=document.createElement('h4');h.textContent=g.dimension;cd.appendChild(h);var p=document.createElement('p');p.textContent=g.risk;cd.appendChild(p);cards.appendChild(cd)});c.appendChild(cards);
+  }
+  if(a.recommendations&&a.recommendations.length){
+    var rh=document.createElement('div');rh.style.cssText='margin-bottom:12px;font-family:var(--font-display);font-weight:600;font-size:14px;color:#fff';rh.textContent='Suositukset';c.appendChild(rh);
+    var list=document.createElement('div');list.className='ai-recs';
+    a.recommendations.forEach(function(r,i){var rd=document.createElement('div');rd.className='ai-rec';var num=document.createElement('div');num.className='ai-rec-num';num.textContent=i+1;rd.appendChild(num);
+      var td=document.createElement('div');var h=document.createElement('h4');h.textContent=r.action;td.appendChild(h);var p=document.createElement('p');p.textContent=r.rationale;td.appendChild(p);rd.appendChild(td);list.appendChild(rd)});c.appendChild(list);
+  }
+}
+
+function renderPlan(plan){
+  var l=document.getElementById('ai-plan-loading');if(l)l.style.display='none';
+  var c=document.getElementById('ai-plan-content');if(!c)return;c.style.display='block';c.textContent='';
+  if(plan.summary){var s=document.createElement('p');s.style.cssText='color:var(--gray-400);margin-bottom:24px;line-height:1.6';s.textContent=plan.summary;c.appendChild(s);}
+  if(plan.phases){plan.phases.forEach(function(phase){
+    var ph=document.createElement('div');ph.className='plan-phase';
+    var pt=document.createElement('div');pt.className='plan-phase-title';pt.textContent=phase.name;ph.appendChild(pt);
+    var pf=document.createElement('div');pf.className='plan-phase-focus';pf.textContent=phase.focus;ph.appendChild(pf);
+    var steps=document.createElement('div');steps.className='plan-steps';
+    if(phase.steps){phase.steps.forEach(function(step){
+      var sd=document.createElement('div');sd.className='plan-step';
+      var wk=document.createElement('div');wk.className='plan-step-week';wk.textContent='Vko '+step.week;sd.appendChild(wk);
+      var td=document.createElement('div');var h=document.createElement('h4');h.textContent=step.action;td.appendChild(h);var p=document.createElement('p');p.textContent=step.detail;td.appendChild(p);sd.appendChild(td);steps.appendChild(sd)});}
+    ph.appendChild(steps);c.appendChild(ph);});}
+  if(plan.expectedOutcome){var eo=document.createElement('div');eo.className='plan-outcome';var st=document.createElement('strong');st.textContent='Odotettu lopputulos: ';eo.appendChild(st);eo.appendChild(document.createTextNode(plan.expectedOutcome));c.appendChild(eo);}
+}
+
+function renderRadarSVG(scores){
+  var cx=210,cy=210,maxR=160,n=DIMENSIONS.length,as=(2*Math.PI)/n,sa=-Math.PI/2;
+  function p(a,r){return{x:cx+r*Math.cos(a),y:cy+r*Math.sin(a)}}
+  var svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('class','radar-svg');svg.setAttribute('viewBox','0 0 420 420');
+  var defs=document.createElementNS('http://www.w3.org/2000/svg','defs');var f=document.createElementNS('http://www.w3.org/2000/svg','filter');f.setAttribute('id','glow');
+  var b=document.createElementNS('http://www.w3.org/2000/svg','feGaussianBlur');b.setAttribute('stdDeviation','3');b.setAttribute('result','blur');f.appendChild(b);
+  var m=document.createElementNS('http://www.w3.org/2000/svg','feMerge');var m1=document.createElementNS('http://www.w3.org/2000/svg','feMergeNode');m1.setAttribute('in','blur');m.appendChild(m1);
+  var m2=document.createElementNS('http://www.w3.org/2000/svg','feMergeNode');m2.setAttribute('in','SourceGraphic');m.appendChild(m2);f.appendChild(m);defs.appendChild(f);svg.appendChild(defs);
+  for(var l=1;l<=5;l++){var gr=(l/5)*maxR,pts='';for(var i=0;i<n;i++){var pp=p(sa+i*as,gr);pts+=pp.x+','+pp.y+' ';}
+    var gp=document.createElementNS('http://www.w3.org/2000/svg','polygon');gp.setAttribute('points',pts.trim());gp.setAttribute('fill','none');
+    gp.setAttribute('stroke',l===5?'rgba(255,255,255,0.08)':'rgba(255,255,255,0.04)');gp.setAttribute('stroke-width','1');svg.appendChild(gp);}
+  for(var i=0;i<n;i++){var ep=p(sa+i*as,maxR);var ln=document.createElementNS('http://www.w3.org/2000/svg','line');
+    ln.setAttribute('x1',cx);ln.setAttribute('y1',cy);ln.setAttribute('x2',ep.x);ln.setAttribute('y2',ep.y);
+    ln.setAttribute('stroke','rgba(255,255,255,0.06)');ln.setAttribute('stroke-width','1');svg.appendChild(ln);}
+  var dp='';for(var i=0;i<n;i++){var v=scores[DIMENSIONS[i].id]||1,pt=p(sa+i*as,(v/5)*maxR);dp+=pt.x+','+pt.y+' ';}
+  var poly=document.createElementNS('http://www.w3.org/2000/svg','polygon');poly.setAttribute('points',dp.trim());
+  poly.setAttribute('fill','rgba(37,99,235,0.12)');poly.setAttribute('stroke','rgba(59,130,246,0.7)');poly.setAttribute('stroke-width','2');poly.setAttribute('stroke-linejoin','round');svg.appendChild(poly);
+  for(var i=0;i<n;i++){var v=scores[DIMENSIONS[i].id]||1,pt=p(sa+i*as,(v/5)*maxR),lv=getLevel(v);
+    var c2=document.createElementNS('http://www.w3.org/2000/svg','circle');c2.setAttribute('cx',pt.x);c2.setAttribute('cy',pt.y);c2.setAttribute('r','5');
+    c2.setAttribute('fill',lv.color);c2.setAttribute('stroke','#fff');c2.setAttribute('stroke-width','2');c2.setAttribute('filter','url(#glow)');svg.appendChild(c2);}
+  for(var i=0;i<n;i++){var lp=p(sa+i*as,maxR+28),v=scores[DIMENSIONS[i].id]||1,anc=Math.abs(lp.x-cx)<5?'middle':lp.x>cx?'start':'end',dy='0.35em';
+    if(Math.abs(lp.y-cy)<20)dy=lp.y<cy?'-0.5em':'1em';
+    var t=document.createElementNS('http://www.w3.org/2000/svg','text');t.setAttribute('x',lp.x);t.setAttribute('y',lp.y);t.setAttribute('text-anchor',anc);t.setAttribute('dy',dy);
+    t.setAttribute('font-family','Outfit,system-ui,sans-serif');t.setAttribute('font-size','12');t.setAttribute('font-weight','600');t.setAttribute('fill','rgba(255,255,255,0.6)');t.textContent=DIMENSIONS[i].name;svg.appendChild(t);
+    var sp2=p(sa+i*as,maxR+44),st2=document.createElementNS('http://www.w3.org/2000/svg','text');st2.setAttribute('x',sp2.x);st2.setAttribute('y',sp2.y);st2.setAttribute('text-anchor',anc);st2.setAttribute('dy',dy);
+    st2.setAttribute('font-family','Outfit,system-ui,sans-serif');st2.setAttribute('font-size','11');st2.setAttribute('font-weight','700');st2.setAttribute('fill',getLevel(v).color);st2.textContent=v;svg.appendChild(st2);}
+  return svg;
+}
+</script>
+</body>
+</html>
