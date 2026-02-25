@@ -12,21 +12,14 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const rateLimit = require('express-rate-limit');
-
-let apiRoutes, adminRoutes;
-try {
-  apiRoutes = require('./routes/api');
-  adminRoutes = require('./routes/admin');
-} catch (err) {
-  console.error('FATAL: Failed to load routes:', err);
-}
+const db = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Health check (before any middleware)
+// Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', port: PORT, pid: process.pid, uptime: process.uptime() });
+  res.json({ status: 'ok', port: PORT });
 });
 
 // Middleware
@@ -40,14 +33,24 @@ app.use('/api/', rateLimit({
   legacyHeaders: false,
 }));
 
+// Wait for DB before handling API requests
+app.use('/api', async (req, res, next) => {
+  try {
+    await db.ready;
+    next();
+  } catch (err) {
+    res.status(503).json({ error: 'Database not ready' });
+  }
+});
+
 // API routes
-if (apiRoutes) app.use('/api', apiRoutes);
-if (adminRoutes) app.use('/api/admin', adminRoutes);
+app.use('/api', require('./routes/api'));
+app.use('/api/admin', require('./routes/admin'));
 
 // Shareable results page with OG meta tags
-app.get('/results/:id', (req, res) => {
+app.get('/results/:id', async (req, res) => {
   try {
-    const db = require('./db');
+    await db.ready;
     const assessment = db.get(req.params.id);
     const resultsPath = path.join(__dirname, '..', 'public', 'results.html');
 
@@ -75,6 +78,12 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log('RevOps Maturiteettikartoitus running on port ' + PORT);
+// Start after DB is ready
+db.ready.then(() => {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log('RevOps Maturiteettikartoitus running on port ' + PORT);
+  });
+}).catch(err => {
+  console.error('Failed to start:', err);
+  process.exit(1);
 });
